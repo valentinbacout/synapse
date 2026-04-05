@@ -636,7 +636,7 @@ const rawTimelineEvents = [
     longitude: 1.337997294703146
   },
   {
-    title: "Croisière Deliziosa",
+    title: "Croisière Costa Deliziosa",
     category: "travel",
     startDate: "2012-04-24",
     endDate: "2012-05-03",
@@ -863,7 +863,7 @@ const rawTimelineEvents = [
     ]
   },
   {
-    title: "Croisière Diadema",
+    title: "Croisière Costa Diadema",
     category: "travel",
     startDate: "2015-10-18",
     endDate: "2015-10-25",
@@ -1272,6 +1272,13 @@ const rawTimelineEvents = [
     category: "association",
     startDate: "2026-03-28",
     color: "#ffbdcb",
+    gallery: [
+      {
+        src: "images/AGO_INSA_Alumni_HdF_2026.jpeg",
+        alt: "AGO INSA Alumni HDF",
+        caption: "AGO INSA Alumni HDF"
+      }
+    ]
   },
   {
     title: "Secrétaire Adjoint INSA Alumni HDF",

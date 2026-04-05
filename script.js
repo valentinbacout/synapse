@@ -827,6 +827,42 @@ function formatFullDate(ms) {
   }).format(new Date(ms));
 }
 
+function formatDurationBetween(startMs, endMs) {
+  const startDate = toDate(startMs);
+  const endDate = toDate(endMs);
+
+  let years = endDate.getFullYear() - startDate.getFullYear();
+  let months = endDate.getMonth() - startDate.getMonth();
+  let days = endDate.getDate() - startDate.getDate();
+
+  if (days < 0) {
+    months -= 1;
+    const previousMonthLastDay = new Date(
+      endDate.getFullYear(),
+      endDate.getMonth(),
+      0
+    ).getDate();
+    days += previousMonthLastDay;
+  }
+
+  if (months < 0) {
+    years -= 1;
+    months += 12;
+  }
+
+  const parts = [];
+  if (years > 0) parts.push(`${years} an${years > 1 ? "s" : ""}`);
+  if (months > 0) parts.push(`${months} mois`);
+  if (days > 0) parts.push(`${days} jour${days > 1 ? "s" : ""}`);
+
+  if (!parts.length) {
+    const totalDays = Math.max(1, Math.round((endMs - startMs) / DAY_MS));
+    return `${totalDays} jour${totalDays > 1 ? "s" : ""}`;
+  }
+
+  return parts.slice(0, 2).join(" ");
+}
+
 const mapEl = document.getElementById("events-map");
 const heatmapToggleEl = document.getElementById("heatmap-toggle");
 let leafletMap = null;
@@ -974,16 +1010,16 @@ function createStatDetailList(items = [], options = {}) {
   return `
     <div class="${listClassName}">
       ${items.map((item) => {
-        const title = escapeHtml(item.title || "Sans titre");
-        const meta = item.meta ? `<div class="stats-detail-item__meta">${escapeHtml(item.meta)}</div>` : "";
-        const chips = Array.isArray(item.chips) && item.chips.length
-          ? `<div class="stats-detail-item__chips">${item.chips.map((chip) => `<span class="stats-detail-chip">${escapeHtml(chip)}</span>`).join("")}</div>`
-          : "";
-        const action = item.eventId
-          ? `<button type="button" class="stats-detail-item__action" data-event-id="${escapeAttribute(item.eventId)}">Voir</button>`
-          : "";
+    const title = escapeHtml(item.title || "Sans titre");
+    const meta = item.meta ? `<div class="stats-detail-item__meta">${escapeHtml(item.meta)}</div>` : "";
+    const chips = Array.isArray(item.chips) && item.chips.length
+      ? `<div class="stats-detail-item__chips">${item.chips.map((chip) => `<span class="stats-detail-chip">${escapeHtml(chip)}</span>`).join("")}</div>`
+      : "";
+    const action = item.eventId
+      ? `<button type="button" class="stats-detail-item__action" data-event-id="${escapeAttribute(item.eventId)}">Voir</button>`
+      : "";
 
-        return `
+    return `
           <article class="stats-detail-item">
             <div class="stats-detail-item__main">
               <div class="stats-detail-item__title">${title}</div>
@@ -993,7 +1029,7 @@ function createStatDetailList(items = [], options = {}) {
             ${action}
           </article>
         `;
-      }).join("")}
+  }).join("")}
     </div>
   `;
 }
@@ -1343,7 +1379,9 @@ function renderStats() {
   const countriesList = Array.from(uniqueCountriesMap.values()).sort((a, b) => a.localeCompare(b, "fr-FR"));
   const citiesList = Array.from(uniqueCitiesMap.values()).sort((a, b) => formatLocationLabel(a).localeCompare(formatLocationLabel(b), "fr-FR"));
   const livedPlacesList = Array.from(uniqueLivedPlacesMap.values()).sort((a, b) => formatLocationLabel(a).localeCompare(formatLocationLabel(b), "fr-FR"));
-
+  const livedPlacesPeriods = normalized
+    .filter((event) => event.category === "living_place")
+    .sort((a, b) => a.startMs - b.startMs || a.endMs - b.endMs);
   if (statsEls.livedPlaces) statsEls.livedPlaces.textContent = String(uniqueLivedPlacesMap.size);
   if (statsEls.countries) statsEls.countries.textContent = `${uniqueCountriesMap.size} / ${TOTAL_COUNTRIES}`;
   if (statsEls.cities) statsEls.cities.textContent = String(uniqueCitiesMap.size);
@@ -1371,34 +1409,30 @@ function renderStats() {
     subtitle: `${countriesList.length} pays distincts référencés dans la timeline`,
     html: createStatDetailList(
       countriesList.map((country) => ({
-        title: titleCase(country),
-        chips: topCountry && country.toLowerCase() === topCountry ? [`${topCountryCount} occurrence${topCountryCount > 1 ? "s" : ""}`] : []
+        title: titleCase(country)
       })),
       { compact: true }
     )
   });
+
+
 
   setStatDetail("livedPlaces", {
     title: "Endroits vécus",
-    subtitle: `${livedPlacesList.length} lieux de vie uniques`,
+    subtitle: `${livedPlacesPeriods.length} période${livedPlacesPeriods.length > 1 ? "s" : ""} de vie · ${livedPlacesList.length} lieu${livedPlacesList.length > 1 ? "x" : ""} unique${livedPlacesList.length > 1 ? "s" : ""}`,
     html: createStatDetailList(
-      livedPlacesList.map((place) => ({
-        title: formatLocationLabel(place),
-        meta: place.title ? `Événement: ${place.title}` : "",
-        eventId: place.eventId
-      }))
-    )
-  });
+      livedPlacesPeriods.map((event) => {
+        const isOngoing = String(event.endDate || "").trim().toLowerCase() === "today";
+        const dateRange = isOngoing
+          ? `${formatFullDate(event.startMs)} — Aujourd'hui`
+          : formatEventDateRange(event);
 
-  setStatDetail("cities", {
-    title: "Villes référencées",
-    subtitle: `${citiesList.length} villes uniques dans la base`,
-    html: createStatDetailList(
-      citiesList.map((city) => ({
-        title: city.city || city.country || "Lieu non précisé",
-        meta: city.city && city.country ? city.country : ""
-      })),
-      { compact: true }
+        return {
+          title: event.title || formatLocationLabel(event),
+          meta: `${formatLocationLabel(event)} · ${dateRange}`,
+          chips: [formatDurationBetween(event.startMs, event.endMs), ...(isOngoing ? ["En cours"] : [])],
+        };
+      })
     )
   });
 
@@ -1408,9 +1442,7 @@ function renderStats() {
     html: createStatDetailList(
       travelEvents.map((event) => ({
         title: event.title || "Voyage",
-        meta: `${formatEventDateRange(event)}${getEventLocation(event) ? ` · ${getEventLocation(event)}` : ""}`,
-        chips: [CATEGORY_LABELS[event.category] || event.category],
-        eventId: event.id
+        meta: formatEventDateRange(event)
       }))
     )
   });
@@ -1421,32 +1453,14 @@ function renderStats() {
     html: createStatDetailList(
       distanceSegments
         .slice()
-        .sort((a, b) => b.distance - a.distance)
+        .sort((a, b) => a.startDate - b.startDate) // 👉 tri chronologique
         .map((segment) => ({
           title: `${segment.from} → ${segment.to}`,
-          meta: `${Math.round(segment.distance)} km · ${formatFullDate(segment.startDate)} → ${formatFullDate(segment.endDate)}`,
-          chips: segment.eventTitle ? [segment.eventTitle] : [],
-          eventId: segment.eventId
+          meta: `${formatFullDate(segment.startDate)} · ${Math.round(segment.distance)} km`,
         }))
     )
   });
 
-  setStatDetail("longest", {
-    title: "Plus long trajet",
-    subtitle: longestTrip
-      ? `${Math.round(longestTrip.distance)} km entre ${longestTrip.from} et ${longestTrip.to}`
-      : "Aucun trajet calculable",
-    html: longestTrip
-      ? createStatDetailList([
-        {
-          title: `${longestTrip.from} → ${longestTrip.to}`,
-          meta: `${Math.round(longestTrip.distance)} km · ${formatFullDate(longestTrip.startDate)} → ${formatFullDate(longestTrip.endDate)}`,
-          chips: longestTrip.eventTitle ? [longestTrip.eventTitle] : [],
-          eventId: longestTrip.eventId
-        }
-      ])
-      : '<p class="stats-detail-empty">Aucun trajet calculable.</p>'
-  });
 
   setStatDetail("bestYear", {
     title: "Année la plus active",
@@ -1455,28 +1469,11 @@ function renderStats() {
       : "Aucune année détectée",
     html: createStatDetailList(
       bestYearEvents.map((event) => ({
-        title: event.title || "Sans titre",
-        meta: `${formatEventDateRange(event)}${getEventLocation(event) ? ` · ${getEventLocation(event)}` : ""}`,
-        chips: [CATEGORY_LABELS[event.category] || event.category],
-        eventId: event.id
+        title: event.title || "Sans titre"
       }))
     )
   });
 
-  setStatDetail("topCountry", {
-    title: "Pays le plus visité",
-    subtitle: topCountry
-      ? `${formatCountry(topCountry)} · ${topCountryCount} occurrence${topCountryCount > 1 ? "s" : ""}`
-      : "Aucun pays hors France détecté",
-    html: createStatDetailList(
-      topCountryEvents.map((event) => ({
-        title: event.title || "Sans titre",
-        meta: `${formatEventDateRange(event)}${getEventLocation(event) ? ` · ${getEventLocation(event)}` : ""}`,
-        chips: [CATEGORY_LABELS[event.category] || event.category],
-        eventId: event.id
-      }))
-    )
-  });
 
   bindStatCard(statCards.countries, "countries", "Afficher la liste des pays visités");
   bindStatCard(statCards.livedPlaces, "livedPlaces", "Afficher le détail des endroits vécus");
