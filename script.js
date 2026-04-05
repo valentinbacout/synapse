@@ -1696,7 +1696,9 @@ function renderLeftPanelCategories() {
 
     const checkbox = item.querySelector('input[type="checkbox"]');
     checkbox?.addEventListener("click", (e) => {
+      e.preventDefault();
       e.stopPropagation();
+      toggleCategoryVisibility(category);
     });
 
     item.addEventListener("click", () => toggleCategoryVisibility(category));
