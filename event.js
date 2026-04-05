@@ -396,7 +396,8 @@ const rawTimelineEvents = [
     city: "Valenciennes",
     country: "France",
     latitude: 50.32368705011155,
-    longitude: 3.5135789925017678
+    longitude: 3.5135789925017678,
+    youtubeUrl: "https://youtu.be/UM52jmoDyJU?si=nFqd1WcQpxD_u3qo"
   },
   {
     title: "Main Square Festival",
@@ -437,7 +438,8 @@ const rawTimelineEvents = [
     city: "Les Sybelles",
     country: "France",
     latitude: 45.26643232862341,
-    longitude: 6.296191748201377
+    longitude: 6.296191748201377,
+    youtubeUrl: "https://youtu.be/X0-CEotx8hI?si=LxHvK-py3JDXelKL",
   },
   {
     title: "Soirée de Passation",
@@ -1106,7 +1108,7 @@ const rawTimelineEvents = [
     color: "#095D8F",
     city: "Singapour",
     country: "Singapour",
-    latitude: 1.2843277942862887, 
+    latitude: 1.2843277942862887,
     longitude: 103.85916445116489
   },
   {
@@ -1163,7 +1165,7 @@ const rawTimelineEvents = [
         endDate: "2026-08-07",
         city: "Singapour",
         country: "Singapour",
-        latitude: 1.2861521751029412, 
+        latitude: 1.2861521751029412,
         longitude: 103.85352936659403
       },
       {
@@ -1179,7 +1181,7 @@ const rawTimelineEvents = [
         date: "2026-08-09",
         city: "Kuala Lumpur",
         country: "Malaisie",
-        latitude: 2.741572427260337, 
+        latitude: 2.741572427260337,
         longitude: 101.70038871903554
       },
       {
@@ -1241,7 +1243,8 @@ const rawTimelineEvents = [
     city: "Gif-sur-Yvette",
     country: "France",
     latitude: 48.70864495649992,
-    longitude: 2.1592213406099368
+    longitude: 2.1592213406099368,
+    youtubeUrl: "https://youtu.be/-bzoR3Ta0uU?si=9kBjnCR8j9rvlv-X"
   },
   {
     title: "WEI",
