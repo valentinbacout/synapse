@@ -1176,13 +1176,28 @@ const rawTimelineEvents = [
     title: "Singapour - Malaisie",
     category: "travel",
     startDate: "2026-08-04",
-    endDate: "2026-08-12",
+    endDate: "2026-08-13",
     color: "#138a3a",
     steps: [
-      {
+            {
         category: "travel",
         date: "2026-08-04",
-        endDate: "2026-08-07",
+        city: "Paris",
+        country: "France",
+        latitude: 49.007844048455425,
+        longitude: 2.550611200403899
+      },
+      {
+        category: "travel",
+        date: "2026-08-05",
+        city: "Zurich",
+        country: "Suisse",
+        latitude: 47.46136909089238, 
+        longitude: 8.552652353558694
+      },
+      {
+        category: "travel",
+        date: "2026-08-06",
         city: "Singapour",
         country: "Singapour",
         latitude: 1.2861521751029412,
@@ -1215,12 +1230,19 @@ const rawTimelineEvents = [
       {
         category: "travel",
         date: "2026-08-11",
-        endDate: "2026-08-12",
         city: "Kuala Lumpur",
         country: "Malaisie",
         latitude: 3.15641329416338,
         longitude: 101.70849865227237
       },
+      {
+        category: "travel",
+        date: "2026-08-12",
+        city: "Paris",
+        country: "France",
+        latitude: 49.007844048455425,
+        longitude: 2.550611200403899
+      }
     ]
   },
 
