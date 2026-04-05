@@ -1230,80 +1230,192 @@ function renderStats() {
     return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   };
 
-  const distancePoints = normalized
-    .flatMap((event) => {
-      const points = [];
+  const livingPlaceEvents = normalized
+    .filter((event) => event.category === "living_place")
+    .sort((a, b) => a.startMs - b.startMs || a.endMs - b.endMs);
 
-      const pushPoint = (item, fallbackDate, fallbackLabel) => {
-        const lat = Number(item?.latitude);
-        const lon = Number(item?.longitude);
+  const getActiveLivingPlaceForDate = (dateMs) => {
+    const exactMatch = livingPlaceEvents.find((livingPlace) => (
+      livingPlace.startMs <= dateMs && dateMs <= livingPlace.endMs
+    ));
 
-        if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+    if (exactMatch) return exactMatch;
 
-        const dateValue = item?.date ?? item?.startDate ?? fallbackDate;
-        if (!dateValue) return;
+    const previousPlaces = livingPlaceEvents.filter((livingPlace) => livingPlace.startMs <= dateMs);
+    if (previousPlaces.length) {
+      return previousPlaces[previousPlaces.length - 1];
+    }
 
-        points.push({
-          lat,
-          lon,
-          date: toMs(dateValue),
-          label: item?.city || item?.title || item?.country || fallbackLabel || "Lieu",
-          country: item?.country || "",
-          city: item?.city || "",
-          eventId: event.id,
-          eventTitle: event.title || fallbackLabel || "Événement"
-        });
-      };
+    return livingPlaceEvents[0] || null;
+  };
 
+  const getEventTravelPoints = (event) => {
+    const points = [];
+
+    const pushPoint = (item, fallbackDate, fallbackLabel) => {
+      const lat = Number(item?.latitude);
+      const lon = Number(item?.longitude);
+
+      if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+
+      const dateValue = item?.date ?? item?.startDate ?? fallbackDate;
+      if (!dateValue) return;
+
+      points.push({
+        lat,
+        lon,
+        date: toMs(dateValue),
+        label: item?.city || item?.title || item?.country || fallbackLabel || "Lieu",
+        country: item?.country || "",
+        city: item?.city || ""
+      });
+    };
+
+    if (Array.isArray(event.steps) && event.steps.length) {
+      event.steps.forEach((step) => pushPoint(step, event.startDate, event.title));
+    } else {
       pushPoint(event, event.startDate, event.title);
+    }
 
-      if (Array.isArray(event.steps)) {
-        event.steps.forEach((step) => pushPoint(step, event.startDate, event.title));
-      }
+    return points
+      .sort((a, b) => a.date - b.date)
+      .filter((point, index, array) => {
+        if (index === 0) return true;
+        const prev = array[index - 1];
 
-      return points;
-    })
-    .sort((a, b) => a.date - b.date)
-    .filter((point, index, array) => {
-      if (index === 0) return true;
-      const prev = array[index - 1];
-
-      return !(
-        prev.lat === point.lat &&
-        prev.lon === point.lon &&
-        prev.date === point.date
-      );
-    });
+        return !(
+          prev.lat === point.lat &&
+          prev.lon === point.lon &&
+          prev.date === point.date
+        );
+      });
+  };
 
   let totalDistance = 0;
   let longestDistance = 0;
   let longestTrip = null;
   const distanceSegments = [];
 
-  for (let i = 1; i < distancePoints.length; i += 1) {
-    const prev = distancePoints[i - 1];
-    const curr = distancePoints[i];
-
-    const d = distanceKm(prev.lat, prev.lon, curr.lat, curr.lon);
+  const registerDistanceSegment = (segment) => {
+    const d = Number(segment?.distance);
+    if (!Number.isFinite(d) || d <= 0) return;
 
     totalDistance += d;
-
-    const segment = {
-      from: prev.city || prev.country || prev.label || "Lieu précédent",
-      to: curr.city || curr.country || curr.label || "Lieu suivant",
-      distance: d,
-      startDate: prev.date,
-      endDate: curr.date,
-      eventId: curr.eventId,
-      eventTitle: curr.eventTitle
-    };
-
     distanceSegments.push(segment);
 
     if (d > longestDistance) {
       longestDistance = d;
       longestTrip = segment;
     }
+  };
+
+  normalized
+    .filter((event) => event.category !== "living_place")
+    .sort((a, b) => a.startMs - b.startMs || a.endMs - b.endMs)
+    .forEach((event) => {
+      const eventPoints = getEventTravelPoints(event);
+      if (!eventPoints.length) return;
+
+      const hasDatedSteps = Array.isArray(event.steps) && event.steps.some((step) => {
+        const lat = Number(step?.latitude);
+        const lon = Number(step?.longitude);
+        const hasDate = step?.date !== undefined || step?.startDate !== undefined;
+        return Number.isFinite(lat) && Number.isFinite(lon) && hasDate;
+      });
+
+      const pathStartDate = hasDatedSteps ? eventPoints[0].date : event.startMs;
+      const pathEndDate = hasDatedSteps
+        ? eventPoints[eventPoints.length - 1].date
+        : (event.endMs ?? event.startMs);
+
+      const startHome = getActiveLivingPlaceForDate(pathStartDate);
+      const endHome = getActiveLivingPlaceForDate(pathEndDate);
+
+      const startHomeLat = Number(startHome?.latitude);
+      const startHomeLon = Number(startHome?.longitude);
+      const endHomeLat = Number(endHome?.latitude);
+      const endHomeLon = Number(endHome?.longitude);
+
+      const fullPath = [];
+
+      if (Number.isFinite(startHomeLat) && Number.isFinite(startHomeLon)) {
+        const firstPoint = eventPoints[0];
+        const startsAtHome = firstPoint && firstPoint.lat === startHomeLat && firstPoint.lon === startHomeLon;
+
+        if (!startsAtHome) {
+          fullPath.push({
+            lat: startHomeLat,
+            lon: startHomeLon,
+            date: pathStartDate,
+            label: startHome.city || startHome.title || "Lieu de vie",
+            country: startHome.country || "",
+            city: startHome.city || "",
+            isHome: true
+          });
+        }
+      }
+
+      fullPath.push(...eventPoints);
+
+      if (Number.isFinite(endHomeLat) && Number.isFinite(endHomeLon)) {
+        const lastPoint = eventPoints[eventPoints.length - 1];
+        const endsAtHome = lastPoint && lastPoint.lat === endHomeLat && lastPoint.lon === endHomeLon;
+
+        if (!endsAtHome) {
+          fullPath.push({
+            lat: endHomeLat,
+            lon: endHomeLon,
+            date: pathEndDate,
+            label: endHome.city || endHome.title || "Lieu de vie",
+            country: endHome.country || "",
+            city: endHome.city || "",
+            isHome: true
+          });
+        }
+      }
+
+      for (let i = 1; i < fullPath.length; i += 1) {
+        const prev = fullPath[i - 1];
+        const curr = fullPath[i];
+        const d = distanceKm(prev.lat, prev.lon, curr.lat, curr.lon);
+
+        registerDistanceSegment({
+          from: prev.city || prev.country || prev.label || "Lieu précédent",
+          to: curr.city || curr.country || curr.label || "Lieu suivant",
+          distance: d,
+          startDate: prev.date,
+          endDate: curr.date,
+          eventId: event.id,
+          eventTitle: event.title || "Événement",
+          homeLabel: startHome?.city || startHome?.title || "Lieu de vie",
+          segmentType: "event"
+        });
+      }
+    });
+
+  for (let i = 1; i < livingPlaceEvents.length; i += 1) {
+    const prevHome = livingPlaceEvents[i - 1];
+    const nextHome = livingPlaceEvents[i];
+    const prevLat = Number(prevHome?.latitude);
+    const prevLon = Number(prevHome?.longitude);
+    const nextLat = Number(nextHome?.latitude);
+    const nextLon = Number(nextHome?.longitude);
+
+    if (![prevLat, prevLon, nextLat, nextLon].every(Number.isFinite)) continue;
+
+    const d = distanceKm(prevLat, prevLon, nextLat, nextLon);
+
+    registerDistanceSegment({
+      from: prevHome.city || prevHome.country || prevHome.title || "Lieu de vie précédent",
+      to: nextHome.city || nextHome.country || nextHome.title || "Nouveau lieu de vie",
+      distance: d,
+      startDate: prevHome.endMs,
+      endDate: nextHome.startMs,
+      eventId: nextHome.id,
+      eventTitle: `Déménagement : ${prevHome.title || prevHome.city || "Lieu de vie"} → ${nextHome.title || nextHome.city || "Lieu de vie"}`,
+      homeLabel: nextHome.city || nextHome.title || "Lieu de vie",
+      segmentType: "move"
+    });
   }
 
   const eventsPerYear = {};
