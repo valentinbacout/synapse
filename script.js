@@ -1000,6 +1000,105 @@ function formatLocationLabel(item = {}) {
   return [city, country].filter(Boolean).join(", ") || "Lieu non précisé";
 }
 
+function normalizePlaceLabel(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .trim()
+    .toLowerCase();
+}
+
+function isSamePlaceLabel(a, b) {
+  const left = normalizePlaceLabel(a);
+  const right = normalizePlaceLabel(b);
+  return Boolean(left) && left === right;
+}
+
+function formatDetailDateRange(startMs, endMs = startMs) {
+  if (!Number.isFinite(startMs)) return "Date non précisée";
+  if (!Number.isFinite(endMs) || startMs === endMs) {
+    return formatFullDate(startMs);
+  }
+  return `${formatFullDate(startMs)} — ${formatFullDate(endMs)}`;
+}
+
+function buildDistanceDetailItems(distanceSegments = [], eventLookup = new Map()) {
+  const visibleSegments = distanceSegments
+    .filter((segment) => {
+      const fromLabel = segment.from || "";
+      const toLabel = segment.to || "";
+      return Number.isFinite(Number(segment.distance)) && Number(segment.distance) > 0 && !isSamePlaceLabel(fromLabel, toLabel);
+    })
+    .sort((a, b) => a.startDate - b.startDate || a.endDate - b.endDate);
+
+  if (!visibleSegments.length) return [];
+
+  const groups = new Map();
+
+  visibleSegments.forEach((segment, index) => {
+    const key = segment.eventId || `segment_${index}`;
+    if (!groups.has(key)) {
+      groups.set(key, {
+        eventId: segment.eventId || null,
+        eventTitle: segment.eventTitle || "Trajet",
+        segmentType: segment.segmentType || "event",
+        segments: []
+      });
+    }
+    groups.get(key).segments.push(segment);
+  });
+
+  const items = [];
+
+  groups.forEach((group) => {
+    const event = group.eventId ? eventLookup.get(group.eventId) : null;
+    const groupSegments = group.segments.slice().sort((a, b) => a.startDate - b.startDate || a.endDate - b.endDate);
+
+    if (!groupSegments.length) return;
+
+    if (group.segmentType === "move") {
+      groupSegments.forEach((segment) => {
+        items.push({
+          title: `${segment.from} → ${segment.to}`,
+          meta: `${formatDetailDateRange(segment.startDate, segment.endDate)} · ${Math.round(segment.distance)} km`,
+          chips: [group.eventTitle, "Déménagement"],
+          eventId: segment.eventId || undefined
+        });
+      });
+      return;
+    }
+
+    const isPointEvent = event?.visualType === "point" || groupSegments.every((segment) => segment.startDate === segment.endDate);
+
+    if (
+      isPointEvent &&
+      groupSegments.length === 2 &&
+      isSamePlaceLabel(groupSegments[0].from, groupSegments[1].to) &&
+      isSamePlaceLabel(groupSegments[0].to, groupSegments[1].from)
+    ) {
+      const totalKm = Math.round(groupSegments[0].distance + groupSegments[1].distance);
+      items.push({
+        title: `${groupSegments[0].from} ↔ ${groupSegments[0].to}`,
+        meta: `${formatDetailDateRange(groupSegments[0].startDate, groupSegments[1].endDate)} · ${totalKm} km`,
+        chips: [group.eventTitle, "Aller-retour"],
+        eventId: group.eventId || undefined
+      });
+      return;
+    }
+
+    groupSegments.forEach((segment) => {
+      items.push({
+        title: `${segment.from} → ${segment.to}`,
+        meta: `${formatDetailDateRange(segment.startDate, segment.endDate)} · ${Math.round(segment.distance)} km`,
+        chips: [group.eventTitle].filter(Boolean),
+        eventId: group.eventId || undefined
+      });
+    });
+  });
+
+  return items;
+}
+
 function createStatDetailList(items = [], options = {}) {
   if (!items.length) {
     return '<p class="stats-detail-empty">Aucun détail disponible.</p>';
@@ -1012,12 +1111,8 @@ function createStatDetailList(items = [], options = {}) {
       ${items.map((item) => {
     const title = escapeHtml(item.title || "Sans titre");
     const meta = item.meta ? `<div class="stats-detail-item__meta">${escapeHtml(item.meta)}</div>` : "";
-    const chips = Array.isArray(item.chips) && item.chips.length
-      ? `<div class="stats-detail-item__chips">${item.chips.map((chip) => `<span class="stats-detail-chip">${escapeHtml(chip)}</span>`).join("")}</div>`
-      : "";
-    const action = item.eventId
-      ? `<button type="button" class="stats-detail-item__action" data-event-id="${escapeAttribute(item.eventId)}">Voir</button>`
-      : "";
+    const chips = "";
+    const action = "";
 
     return `
           <article class="stats-detail-item">
@@ -1251,6 +1346,7 @@ function renderStats() {
 
   const getEventTravelPoints = (event) => {
     const points = [];
+    const hasSteps = Array.isArray(event.steps) && event.steps.length > 0;
 
     const pushPoint = (item, fallbackDate, fallbackLabel) => {
       const lat = Number(item?.latitude);
@@ -1271,7 +1367,7 @@ function renderStats() {
       });
     };
 
-    if (Array.isArray(event.steps) && event.steps.length) {
+    if (hasSteps) {
       event.steps.forEach((step) => pushPoint(step, event.startDate, event.title));
     } else {
       pushPoint(event, event.startDate, event.title);
@@ -1289,6 +1385,25 @@ function renderStats() {
           prev.date === point.date
         );
       });
+  };
+
+  const getEventEffectiveBounds = (event) => {
+    const relevantDates = [event.startMs, event.endMs];
+
+    if (Array.isArray(event.steps)) {
+      event.steps.forEach((step) => {
+        const startValue = step?.date ?? step?.startDate;
+        const endValue = step?.endDate ?? step?.date ?? step?.startDate;
+
+        if (startValue !== undefined) relevantDates.push(toMs(startValue));
+        if (endValue !== undefined) relevantDates.push(toMs(endValue));
+      });
+    }
+
+    return {
+      startMs: Math.min(...relevantDates),
+      endMs: Math.max(...relevantDates)
+    };
   };
 
   let totalDistance = 0;
@@ -1309,89 +1424,82 @@ function renderStats() {
     }
   };
 
-  normalized
+  const nonLivingEvents = normalized
     .filter((event) => event.category !== "living_place")
-    .sort((a, b) => a.startMs - b.startMs || a.endMs - b.endMs)
-    .forEach((event) => {
-      const eventPoints = getEventTravelPoints(event);
-      if (!eventPoints.length) return;
+    .sort((a, b) => a.startMs - b.startMs || a.endMs - b.endMs);
 
-      const hasDatedSteps = Array.isArray(event.steps) && event.steps.some((step) => {
-        const lat = Number(step?.latitude);
-        const lon = Number(step?.longitude);
-        const hasDate = step?.date !== undefined || step?.startDate !== undefined;
-        return Number.isFinite(lat) && Number.isFinite(lon) && hasDate;
-      });
+  nonLivingEvents.forEach((event) => {
+    const eventPoints = getEventTravelPoints(event);
+    if (!eventPoints.length) return;
 
-      const pathStartDate = hasDatedSteps ? eventPoints[0].date : event.startMs;
-      const pathEndDate = hasDatedSteps
-        ? eventPoints[eventPoints.length - 1].date
-        : (event.endMs ?? event.startMs);
+    const isDurationEvent = event.visualType === "range";
+    const pathStartDate = isDurationEvent ? eventPoints[0].date : event.startMs;
+    const pathEndDate = isDurationEvent ? eventPoints[eventPoints.length - 1].date : event.startMs;
 
-      const startHome = getActiveLivingPlaceForDate(pathStartDate);
-      const endHome = getActiveLivingPlaceForDate(pathEndDate);
+    const startHome = getActiveLivingPlaceForDate(pathStartDate);
+    const endHome = getActiveLivingPlaceForDate(pathEndDate);
 
-      const startHomeLat = Number(startHome?.latitude);
-      const startHomeLon = Number(startHome?.longitude);
-      const endHomeLat = Number(endHome?.latitude);
-      const endHomeLon = Number(endHome?.longitude);
+    const startHomeLat = Number(startHome?.latitude);
+    const startHomeLon = Number(startHome?.longitude);
+    const endHomeLat = Number(endHome?.latitude);
+    const endHomeLon = Number(endHome?.longitude);
 
-      const fullPath = [];
+    const fullPath = [];
 
-      if (Number.isFinite(startHomeLat) && Number.isFinite(startHomeLon)) {
-        const firstPoint = eventPoints[0];
-        const startsAtHome = firstPoint && firstPoint.lat === startHomeLat && firstPoint.lon === startHomeLon;
+    if (Number.isFinite(startHomeLat) && Number.isFinite(startHomeLon)) {
+      const firstPoint = eventPoints[0];
+      const startsAtHome = firstPoint && firstPoint.lat === startHomeLat && firstPoint.lon === startHomeLon;
 
-        if (!startsAtHome) {
-          fullPath.push({
-            lat: startHomeLat,
-            lon: startHomeLon,
-            date: pathStartDate,
-            label: startHome.city || startHome.title || "Lieu de vie",
-            country: startHome.country || "",
-            city: startHome.city || "",
-            isHome: true
-          });
-        }
-      }
-
-      fullPath.push(...eventPoints);
-
-      if (Number.isFinite(endHomeLat) && Number.isFinite(endHomeLon)) {
-        const lastPoint = eventPoints[eventPoints.length - 1];
-        const endsAtHome = lastPoint && lastPoint.lat === endHomeLat && lastPoint.lon === endHomeLon;
-
-        if (!endsAtHome) {
-          fullPath.push({
-            lat: endHomeLat,
-            lon: endHomeLon,
-            date: pathEndDate,
-            label: endHome.city || endHome.title || "Lieu de vie",
-            country: endHome.country || "",
-            city: endHome.city || "",
-            isHome: true
-          });
-        }
-      }
-
-      for (let i = 1; i < fullPath.length; i += 1) {
-        const prev = fullPath[i - 1];
-        const curr = fullPath[i];
-        const d = distanceKm(prev.lat, prev.lon, curr.lat, curr.lon);
-
-        registerDistanceSegment({
-          from: prev.city || prev.country || prev.label || "Lieu précédent",
-          to: curr.city || curr.country || curr.label || "Lieu suivant",
-          distance: d,
-          startDate: prev.date,
-          endDate: curr.date,
-          eventId: event.id,
-          eventTitle: event.title || "Événement",
-          homeLabel: startHome?.city || startHome?.title || "Lieu de vie",
-          segmentType: "event"
+      if (!startsAtHome) {
+        fullPath.push({
+          lat: startHomeLat,
+          lon: startHomeLon,
+          date: pathStartDate,
+          label: startHome.city || startHome.title || "Lieu de vie",
+          country: startHome.country || "",
+          city: startHome.city || "",
+          isHome: true
         });
       }
-    });
+    }
+
+    fullPath.push(...eventPoints);
+
+    if (Number.isFinite(endHomeLat) && Number.isFinite(endHomeLon)) {
+      const lastPoint = eventPoints[eventPoints.length - 1];
+      const endsAtHome = lastPoint && lastPoint.lat === endHomeLat && lastPoint.lon === endHomeLon;
+
+      if (!endsAtHome) {
+        fullPath.push({
+          lat: endHomeLat,
+          lon: endHomeLon,
+          date: pathEndDate,
+          label: endHome.city || endHome.title || "Lieu de vie",
+          country: endHome.country || "",
+          city: endHome.city || "",
+          isHome: true
+        });
+      }
+    }
+
+    for (let i = 1; i < fullPath.length; i += 1) {
+      const prev = fullPath[i - 1];
+      const curr = fullPath[i];
+      const d = distanceKm(prev.lat, prev.lon, curr.lat, curr.lon);
+
+      registerDistanceSegment({
+        from: prev.city || prev.country || prev.label || "Lieu précédent",
+        to: curr.city || curr.country || curr.label || "Lieu suivant",
+        distance: d,
+        startDate: prev.date,
+        endDate: curr.date,
+        eventId: event.id,
+        eventTitle: event.title || "Événement",
+        homeLabel: startHome?.city || startHome?.title || "Lieu de vie",
+        segmentType: "event"
+      });
+    }
+  });
 
   for (let i = 1; i < livingPlaceEvents.length; i += 1) {
     const prevHome = livingPlaceEvents[i - 1];
@@ -1403,14 +1511,33 @@ function renderStats() {
 
     if (![prevLat, prevLon, nextLat, nextLon].every(Number.isFinite)) continue;
 
+    const moveStartMs = prevHome.endMs;
+    const moveEndMs = nextHome.startMs;
+
+    const hasInterferingTravelEvent = nonLivingEvents.some((event) => {
+      if (event.category !== "travel") return false;
+
+      const hasOwnCoords =
+        Number.isFinite(Number(event?.latitude)) &&
+        Number.isFinite(Number(event?.longitude));
+      const hasSteps = Array.isArray(event.steps) && event.steps.length > 0;
+
+      if (!hasOwnCoords && !hasSteps) return false;
+
+      const bounds = getEventEffectiveBounds(event);
+      return bounds.startMs <= moveEndMs && bounds.endMs >= moveStartMs;
+    });
+
+    if (hasInterferingTravelEvent) continue;
+
     const d = distanceKm(prevLat, prevLon, nextLat, nextLon);
 
     registerDistanceSegment({
       from: prevHome.city || prevHome.country || prevHome.title || "Lieu de vie précédent",
       to: nextHome.city || nextHome.country || nextHome.title || "Nouveau lieu de vie",
       distance: d,
-      startDate: prevHome.endMs,
-      endDate: nextHome.startMs,
+      startDate: moveStartMs,
+      endDate: moveEndMs,
       eventId: nextHome.id,
       eventTitle: `Déménagement : ${prevHome.title || prevHome.city || "Lieu de vie"} → ${nextHome.title || nextHome.city || "Lieu de vie"}`,
       homeLabel: nextHome.city || nextHome.title || "Lieu de vie",
@@ -1491,6 +1618,8 @@ function renderStats() {
   const countriesList = Array.from(uniqueCountriesMap.values()).sort((a, b) => a.localeCompare(b, "fr-FR"));
   const citiesList = Array.from(uniqueCitiesMap.values()).sort((a, b) => formatLocationLabel(a).localeCompare(formatLocationLabel(b), "fr-FR"));
   const livedPlacesList = Array.from(uniqueLivedPlacesMap.values()).sort((a, b) => formatLocationLabel(a).localeCompare(formatLocationLabel(b), "fr-FR"));
+  const eventLookup = new Map(normalized.map((event) => [event.id, event]));
+  const distanceDetailItems = buildDistanceDetailItems(distanceSegments, eventLookup);
   const livedPlacesPeriods = normalized
     .filter((event) => event.category === "living_place")
     .sort((a, b) => a.startMs - b.startMs || a.endMs - b.endMs);
@@ -1561,16 +1690,8 @@ function renderStats() {
 
   setStatDetail("distance", {
     title: "Distance parcourue",
-    subtitle: `${Math.round(totalDistance)} km cumulés sur ${distanceSegments.length} trajet${distanceSegments.length > 1 ? "s" : ""}`,
-    html: createStatDetailList(
-      distanceSegments
-        .slice()
-        .sort((a, b) => a.startDate - b.startDate) // 👉 tri chronologique
-        .map((segment) => ({
-          title: `${segment.from} → ${segment.to}`,
-          meta: `${formatFullDate(segment.startDate)} · ${Math.round(segment.distance)} km`,
-        }))
-    )
+    subtitle: `${Math.round(totalDistance)} km cumulés · ${distanceDetailItems.length} ligne${distanceDetailItems.length > 1 ? "s" : ""} affichée${distanceDetailItems.length > 1 ? "s" : ""}`,
+    html: createStatDetailList(distanceDetailItems)
   });
 
 

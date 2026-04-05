@@ -27,7 +27,7 @@ const rawTimelineEvents = [
     title: "Vénissieux",
     category: "living_place",
     startDate: "2022-09-02",
-    endDate: "2023-01-31",
+    endDate: "2023-01-22",
     color: "#00c3ff",
     city: "Vénissieux",
     country: "France",
@@ -37,8 +37,8 @@ const rawTimelineEvents = [
   {
     title: "Colocation L'Épave, Anzin",
     category: "living_place",
-    startDate: "2023-02-01",
-    endDate: "2024-02-28",
+    startDate: "2023-01-23",
+    endDate: "2024-03-01",
     color: "#00c3ff",
     city: "Anzin",
     country: "France",
@@ -48,8 +48,8 @@ const rawTimelineEvents = [
   {
     title: "Malacca",
     category: "living_place",
-    startDate: "2024-03-03",
-    endDate: "2024-07-24",
+    startDate: "2024-03-02",
+    endDate: "2024-07-25",
     color: "#00c3ff",
     city: "Malacca",
     country: "Malaisie",
@@ -179,8 +179,8 @@ const rawTimelineEvents = [
   {
     title: "Stage CEREMA",
     category: "education",
-    startDate: "2022-09-01",
-    endDate: "2023-01-31",
+    startDate: "2022-09-05",
+    endDate: "2023-01-20",
     description: "Bron, France",
     color: "#EB7D20",
     city: "Bron",
@@ -237,7 +237,7 @@ const rawTimelineEvents = [
         longitude: 55.1587217229964
       },
       {
-        type: "arrival",
+        type: "layover",
         category: "travel",
         title: "Arrivée à Kuala Lumpur",
         date: "2024-03-02",
@@ -245,6 +245,26 @@ const rawTimelineEvents = [
         country: "Malaisie",
         latitude: 2.740226962168589,
         longitude: 101.70117720538843
+      },
+            {
+        type: "arrival",
+        category: "travel",
+        title: "Malacca",
+        date: "2024-03-03",
+        city: "Malacca",
+        country: "Malaisie",
+    latitude: 2.1992834859871064,
+    longitude: 102.23149617804286
+      },
+            {
+        type: "departure",
+        category: "travel",
+        title: "Malacca",
+        date: "2024-07-23",
+        city: "Malacca",
+        country: "Malaisie",
+    latitude: 2.1992834859871064,
+    longitude: 102.23149617804286
       },
       {
         type: "departure",
