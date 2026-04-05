@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Timeline</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="dashboard-layout">
+      <section class="top-row">
+        <div class="top-row__timeline">
+          <section class="timeline-card" aria-labelledby="timeline-card-title">
+            <div class="timeline-card__header">
+              <div>
+                <h2 id="timeline-card-title">Timeline</h2>
+              </div>
+              <div class="timeline-card__zoom">
+                <label class="filters-panel__zoom-label" for="zoom">Zoom</label>
+                <input id="zoom" type="range" min="15" max="180" value="70" />
+              </div>
+            </div>
+
+            <div class="timeline-layout">
+              <div class="timeline-shell">
+                <aside class="timeline-left-panel" aria-label="Panneau latéral de la timeline">
+                  <div class="timeline-left-panel__inner">
+                    <div class="timeline-left-panel__body" id="left-panel-categories"></div>
+                  </div>
+                </aside>
+
+                <div class="timeline">
+                  <div class="scroller" id="scroller">
+                    <div class="stage" id="stage"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <section class="map-panel top-row__map" id="map-panel">
+          <div class="map-panel-header">
+            <div>
+              <h2 id="map-panel-title">Carte des lieux</h2>
+            </div>
+            <div class="map-panel-actions">
+              <label class="map-toggle" for="heatmap-toggle" id="heatmap-toggle-wrap">
+                <input type="checkbox" id="heatmap-toggle" />
+                <span>Heatmap</span>
+              </label>
+              <button type="button" class="map-view-toggle" id="map-view-toggle" hidden>
+                Voir la fiche
+              </button>
+            </div>
+          </div>
+
+          <div class="map-panel-body" id="map-panel-body">
+            <div class="map-view is-active" id="map-view" aria-hidden="false">
+              <div id="events-map" aria-label="Carte des événements"></div>
+            </div>
+
+            <aside class="event-drawer" id="event-drawer" aria-hidden="true">
+              <div class="event-drawer__panel" role="dialog" aria-modal="false" aria-labelledby="event-drawer-title">
+                <button type="button" class="event-drawer__close" id="event-drawer-close"
+                  aria-label="Revenir à la carte">×</button>
+                <div class="event-drawer__content" id="event-drawer-content">
+                  <p class="event-drawer__empty">Sélectionne un événement dans la timeline ou sur la carte pour afficher sa fiche.</p>
+                </div>
+              </div>
+            </aside>
+          </div>
+        </section>
+      </section>
+
+      <section class="bottom-row">
+        <section class="stats-panel" aria-labelledby="stats-title">
+          <div class="stats-panel-header">
+            <div>
+              <h2 id="stats-title">Statistiques</h2>
+            </div>
+          </div>
+
+          <div class="stats-grid" id="stats-grid">
+            <article class="stat-card">
+              <span class="stat-label">Pays visités</span>
+              <strong class="stat-value" id="stat-countries">0</strong>
+              <span class="stat-meta">Basé sur les lieux renseignés</span>
+            </article>
+            <article class="stat-card">
+              <span class="stat-label">Endroits vécus</span>
+              <strong class="stat-value" id="stat-lived-places">0</strong>
+              <span class="stat-meta">Lieux de vie uniques</span>
+            </article>
+            <article class="stat-card">
+              <span class="stat-label">Villes référencées</span>
+              <strong class="stat-value" id="stat-cities">0</strong>
+              <span class="stat-meta">Villes uniques dans la base</span>
+            </article>
+            <article class="stat-card">
+              <span class="stat-label">Voyages</span>
+              <strong class="stat-value" id="stat-travels">0</strong>
+              <span class="stat-meta">Éléments de type voyage</span>
+            </article>
+            <article class="stat-card">
+              <span class="stat-label">Distance parcourue</span>
+              <strong class="stat-value" id="stat-distance">0 km</strong>
+              <span class="stat-meta">Trajets cumulés</span>
+            </article>
+            <article class="stat-card">
+              <span class="stat-label">Plus long trajet</span>
+              <strong class="stat-value" id="stat-longest">0 km</strong>
+              <span class="stat-meta" id="stat-longest-meta">-</span>
+            </article>
+            <article class="stat-card">
+              <span class="stat-label">Année la plus active</span>
+              <strong class="stat-value" id="stat-best-year">-</strong>
+              <span class="stat-meta" id="stat-best-year-meta">0 événement</span>
+            </article>
+            <article class="stat-card">
+              <span class="stat-label">Pays le plus visité (hors France)</span>
+              <strong class="stat-value" id="stat-top-country">-</strong>
+              <span class="stat-meta" id="stat-top-country-meta">0 événement</span>
+            </article>
+          </div>
+        </section>
+      </section>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+  <script src="event.js"></script>
+  <script src="script.js"></script>
+</body>
+
+</html>
