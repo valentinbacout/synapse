@@ -246,26 +246,6 @@ const rawTimelineEvents = [
         latitude: 2.740226962168589,
         longitude: 101.70117720538843
       },
-            {
-        type: "arrival",
-        category: "travel",
-        title: "Malacca",
-        date: "2024-03-03",
-        city: "Malacca",
-        country: "Malaisie",
-    latitude: 2.1992834859871064,
-    longitude: 102.23149617804286
-      },
-            {
-        type: "departure",
-        category: "travel",
-        title: "Malacca",
-        date: "2024-07-23",
-        city: "Malacca",
-        country: "Malaisie",
-    latitude: 2.1992834859871064,
-    longitude: 102.23149617804286
-      },
       {
         type: "departure",
         category: "travel",
@@ -554,6 +534,16 @@ const rawTimelineEvents = [
     country: "France",
     latitude: 50.375292964496396,
     longitude: 3.5219095190037613
+  },
+  {
+    title: "Concert Damso",
+    category: "event",
+    startDate: "2026-04-25",
+    color: "#6E787A",
+    city: "Nice",
+    country: "France",
+    latitude: 43.67858911814832,
+    longitude: 7.198901439819272
   },
   {
     title: "GP Historique France",
@@ -1179,7 +1169,7 @@ const rawTimelineEvents = [
     endDate: "2026-08-13",
     color: "#138a3a",
     steps: [
-            {
+      {
         category: "travel",
         date: "2026-08-04",
         city: "Paris",
@@ -1192,7 +1182,7 @@ const rawTimelineEvents = [
         date: "2026-08-05",
         city: "Zurich",
         country: "Suisse",
-        latitude: 47.46136909089238, 
+        latitude: 47.46136909089238,
         longitude: 8.552652353558694
       },
       {
