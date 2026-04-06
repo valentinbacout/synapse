@@ -388,6 +388,37 @@ const rawTimelineEvents = [
     longitude: 2.4953253188444613
   },
   {
+    title: "Festival Nuits Secrètes",
+    category: "event",
+    startDate: "2022-07-22",
+    endDate: "2022-07-24",
+    color: "#FF6A6E",
+    city: "Aulnoye-Aymeries",
+    country: "France",
+    latitude: 50.19531093953841,
+    longitude: 3.8547170746861097
+  },
+  {
+    title: "Festival Scène-sur-Sambre",
+    category: "event",
+    startDate: "2022-08-26",
+    color: "#FF6A6E",
+    city: "Thuin",
+    country: "Belgique",
+    latitude: 50.36560588145243,
+    longitude: 4.332023214114497
+  },
+  {
+    title: "Pairi Daiza",
+    category: "travel",
+    startDate: "2022-08-30",
+    color: "#2FD866",
+    city: "Ath",
+    country: "Belgique",
+    latitude: 50.58441635686449,
+    longitude: 3.8869135051694452,
+  },
+  {
     title: "Great Day 2",
     category: "event",
     startDate: "2023-06-08",
@@ -477,6 +508,16 @@ const rawTimelineEvents = [
         caption: "SPA Francorchamps"
       },
     ]
+  },
+  {
+    title: "Festival Lys Festival",
+    category: "event",
+    startDate: "2024-09-06",
+    color: "#FF6A6E",
+    city: "Comines",
+    country: "France",
+    latitude: 50.76539278791491,
+    longitude: 3.0064733415107754
   },
   {
     title: "Gala INSA HDF",
@@ -1054,10 +1095,113 @@ const rawTimelineEvents = [
   {
     title: "Ski",
     category: "travel",
+    startDate: "2017-02-12",
+    endDate: "2017-02-18",
+    color: "#ffffff",
+    city: "Les Sybelles",
+    country: "France",
+    latitude: 45.237970159216964,
+    longitude: 1.337997294703146
+  },
+  {
+    title: "Ski",
+    category: "travel",
+    startDate: "2018-03-03",
+    endDate: "2018-03-10",
+    color: "#ffffff",
+    city: "Les Sybelles",
+    country: "France",
+    latitude: 45.237970159216964,
+    longitude: 1.337997294703146
+  },
+  {
+    title: "Ski",
+    category: "travel",
     startDate: "2019-02-09",
     endDate: "2019-02-16",
     color: "#ffffff",
     city: "Les Sybelles",
+    country: "France",
+    latitude: 45.237970159216964,
+    longitude: 1.337997294703146
+  },
+  {
+    title: "Ski",
+    category: "travel",
+    startDate: "2020-02-22",
+    endDate: "2020-02-29",
+    color: "#ffffff",
+    city: "Les Sybelles",
+    country: "France",
+    latitude: 45.237970159216964,
+    longitude: 1.337997294703146
+  },
+  {
+    title: "Pairi Daiza",
+    category: "travel",
+    startDate: "2020-07-03",
+    color: "#2FD866",
+    city: "Ath",
+    country: "Belgique",
+    latitude: 50.58441635686449,
+    longitude: 3.8869135051694452,
+  },
+  {
+    title: "Sud de la France",
+    category: "travel",
+    startDate: "2020-07-04",
+    endDate: "2020-08-02",
+    color: "#2FD866",
+    steps: [
+      {
+        category: "travel",
+        color: "#2ED364",
+        city: "Agde",
+        country: "France",
+        latitude: 43.27713731475383,
+        longitude: 3.509486623001566
+      },
+      {
+        category: "travel",
+        color: "#2ED364",
+        city: "Lavaur",
+        country: "France",
+        latitude: 43.69884242385637,
+        longitude: 1.8174304757497692
+      },
+      {
+        category: "travel",
+        color: "#2ED364",
+        city: "Pont du Gard",
+        country: "France",
+        latitude: 43.947450103542785,
+        longitude: 4.535024369923126
+      },
+      {
+        category: "travel",
+        color: "#2ED364",
+        city: "Méjannes-le-Clap",
+        country: "France",
+        latitude: 44.22730707503459,
+        longitude: 4.348852575062543
+      },
+      {
+        category: "travel",
+        color: "#2ED364",
+        city: "Lavaur",
+        country: "France",
+        latitude: 43.69884242385637,
+        longitude: 1.8174304757497692
+      },
+    ]
+  },
+  {
+    title: "Ayen",
+    category: "travel",
+    startDate: "2020-08-03",
+    endDate: "2020-08-08",
+    color: "#22a6b3",
+    city: "Ayen",
     country: "France",
     latitude: 45.237970159216964,
     longitude: 1.337997294703146
@@ -1115,6 +1259,16 @@ const rawTimelineEvents = [
     country: "Pays-Bas",
     latitude: 52.3676,
     longitude: 4.9041
+  },
+  {
+    title: "Paris",
+    category: "travel",
+    startDate: "2023-08-06",
+    color: "#DD2517",
+    city: "Paris",
+    country: "France",
+    latitude: 48.8566,
+    longitude: 2.3522
   },
   {
     title: "Londres",
@@ -1188,6 +1342,17 @@ const rawTimelineEvents = [
     longitude: 103.83374038381272
   },
   {
+    title: "Ste Cécile",
+    category: "travel",
+    startDate: "2024-08-06",
+    description: "",
+    color: "#01B0DC",
+    city: "Ste Cécile",
+    country: "France",
+    latitude: 50.5723519591504,
+    longitude: 1.6019155512750112
+  },
+  {
     title: "Pairi Daiza",
     category: "travel",
     startDate: "2024-12-28",
@@ -1197,6 +1362,17 @@ const rawTimelineEvents = [
     latitude: 50.58441635686449,
     longitude: 3.8869135051694452,
     youtubeUrl: "https://www.youtube.com/watch?v=0H2eshg8_l8",
+  },
+  {
+    title: "Monaco",
+    category: "travel",
+    startDate: "2024-09-29",
+    description: "",
+    color: "#01B0DC",
+    city: "Monaco",
+    country: "Monaco",
+    latitude: 43.739335279594435,
+    longitude: 7.427643690502318
   },
   {
     title: "Monaco",
