@@ -1640,6 +1640,14 @@ body.has-stats-modal-open {
   background: rgba(15, 23, 42, 0.92);
 }
 
+.artists-podium__event {
+  margin-top: 8px;
+  color: #000000;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
 .artists-podium__item.gold .artists-podium__card {
   background: linear-gradient(180deg, #fef3c7 0%, #fbbf24 100%);
 }

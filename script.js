@@ -34,7 +34,7 @@ const TOTAL_COUNTRIES = 195;
 
 const CATEGORY_ORDER = ["living_place", "education", "association", "event", "travel", "projects", "personal"];
 const CATEGORY_LABELS = {
-  education: "Éducation",
+  education: "Éducation / Travail",
   living_place: "Lieux de vie",
   projects: "Projets",
   event: "Événement",
@@ -1094,6 +1094,8 @@ const statsEls = {
   topCountryMeta: document.getElementById("stat-top-country-meta"),
   artistsSeen: document.getElementById("stat-artists-seen"),
   artistsSeenMeta: document.getElementById("stat-artists-seen-meta"),
+  themeParks: document.getElementById("stat-theme-parks"),
+  themeParksMeta: document.getElementById("stat-theme-parks-meta"),
   years: document.getElementById("stat-years"),
   breakdown: document.getElementById("stats-breakdown")
 };
@@ -1107,7 +1109,8 @@ const statCards = {
   longest: statsEls.longest?.closest(".stat-card") || null,
   bestYear: statsEls.bestYear?.closest(".stat-card") || null,
   topCountry: statsEls.topCountry?.closest(".stat-card") || null,
-  artistsSeen: statsEls.artistsSeen?.closest(".stat-card") || null
+  artistsSeen: statsEls.artistsSeen?.closest(".stat-card") || null,
+  themeParks: statsEls.themeParks?.closest(".stat-card") || null
 };
 
 let statsModalEl = null;
@@ -1165,6 +1168,106 @@ function formatArtistRating(rating) {
   if (!Number.isFinite(rating)) return "";
   const normalized = Number.isInteger(rating) ? String(rating) : String(rating).replace(/\.0+$/, "");
   return `${normalized}/10`;
+}
+
+function normalizeTagValue(tag) {
+  return String(tag || "")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[’']/g, " ")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+function getEventTags(event) {
+  const rawTags = event?.tags ?? event?.Tags ?? [];
+
+  if (Array.isArray(rawTags)) {
+    return rawTags.map((tag) => normalizeTagValue(tag)).filter(Boolean);
+  }
+
+  return String(rawTags || "")
+    .split(/[,;|]/)
+    .map((tag) => normalizeTagValue(tag))
+    .filter(Boolean);
+}
+
+function eventHasAnyTag(event, ...targetTags) {
+  const normalizedTags = getEventTags(event);
+  if (!normalizedTags.length) return false;
+
+  const targets = targetTags.map((tag) => normalizeTagValue(tag)).filter(Boolean);
+  return targets.some((target) => normalizedTags.includes(target));
+}
+
+function formatThemeParkPlace(entry) {
+  return [entry.country] || "Lieu non précisé";
+}
+
+function formatParkRating(rating) {
+  if (!Number.isFinite(rating)) return "Non noté";
+  const normalized = Number.isInteger(rating) ? String(rating) : String(rating).replace(/\.0+$/, "");
+  return `${normalized}/10`;
+}
+
+function createThemeParksPodiumMarkup(entries = []) {
+  if (!entries.length) return "";
+
+  const top3 = entries.slice(0, 3);
+  const podiumOrder = [1, 0, 2].filter((index) => index < top3.length);
+  const placeClasses = ["silver", "gold", "bronze"];
+  const heightClasses = ["is-second", "is-first", "is-third"];
+
+  return `
+    <section class="artists-podium-section artists-top10-section">
+      <div class="artists-podium-section__header">
+        <h4 class="artists-podium-section__title">Top 3 parcs d'attractions</h4>
+      </div>
+      <div class="artists-podium">
+        ${podiumOrder.map((entryIndex, visualIndex) => {
+          const entry = top3[entryIndex];
+          return `
+            <article class="artists-podium__item ${heightClasses[visualIndex]} ${placeClasses[visualIndex]}">
+              <div class="artists-podium__card">
+                <div class="artists-podium__place">#${entry.rank}</div>
+                <div class="artists-podium__name">${escapeHtml(entry.title)}</div>
+                <div class="artists-podium__event">${escapeHtml(formatThemeParkPlace(entry))}</div>
+                <div class="artists-podium__meta">Note · ${escapeHtml(formatParkRating(entry.bestRating))}</div>
+              </div>
+              <div class="artists-podium__base"></div>
+            </article>
+          `;
+        }).join("")}
+      </div>
+    </section>
+  `;
+}
+
+function createThemeParksRankingMarkup(entries = []) {
+  if (!entries.length) {
+    return "<p class=\"stats-detail-empty\">Aucun parc d'attractions détecté.</p>";
+  }
+
+  return `
+    <section class="artists-podium-section artists-top10-section">
+      <div class="artists-podium-section__header">
+      </div>
+      <div class="artists-ranking-list">
+        ${entries.map((entry) => `
+          <article class="artists-ranking-item">
+            <div class="artists-ranking-item__rank">#${entry.rank}</div>
+            <div class="artists-ranking-item__main">
+              <div class="artists-ranking-item__name">${escapeHtml(entry.title)}</div>
+              <div class="artists-ranking-item__meta">${escapeHtml(formatThemeParkPlace(entry))} · Dernière visite ${escapeHtml(formatFullDate(entry.lastVisitMs))}</div>
+            </div>
+            <div class="artists-ranking-item__score">${escapeHtml(formatParkRating(entry.bestRating))}</div>
+          </article>
+        `).join("")}
+      </div>
+    </section>
+  `;
 }
 
 const COUNTRY_TO_CONTINENT = {
@@ -2071,6 +2174,70 @@ function renderStats() {
     };
   });
 
+  const themeParkEvents = normalized
+    .filter((event) => eventHasAnyTag(event, "theme park", "theme parc"))
+    .sort((a, b) => b.startMs - a.startMs || a.title.localeCompare(b.title, "fr-FR"));
+
+  const themeParkMap = new Map();
+  themeParkEvents.forEach((event) => {
+    const key = [String(event.title || "").trim().toLocaleLowerCase("fr-FR"), formatLocationLabel(event).toLocaleLowerCase("fr-FR")].join("|");
+    const parsedRating = typeof event.rating === "number"
+      ? event.rating
+      : Number.parseFloat(String(event.rating ?? "").replace(",", "."));
+    const normalizedRating = Number.isFinite(parsedRating) ? parsedRating : null;
+
+    if (!themeParkMap.has(key)) {
+      themeParkMap.set(key, {
+        title: event.title || "Parc d'attractions",
+        city: event.city || "",
+        country: event.country || "",
+        lastVisitMs: event.startMs,
+        firstVisitMs: event.startMs,
+        visitCount: 1,
+        events: [event],
+        latestEventId: event.id,
+        ratings: normalizedRating !== null ? [normalizedRating] : [],
+        bestRating: normalizedRating,
+        averageRating: normalizedRating
+      });
+      return;
+    }
+
+    const entry = themeParkMap.get(key);
+    entry.visitCount += 1;
+    entry.events.push(event);
+    entry.lastVisitMs = Math.max(entry.lastVisitMs, event.startMs);
+    entry.firstVisitMs = Math.min(entry.firstVisitMs, event.startMs);
+    if (event.startMs >= entry.lastVisitMs) {
+      entry.latestEventId = event.id;
+    }
+
+    if (normalizedRating !== null) {
+      entry.ratings.push(normalizedRating);
+    }
+
+    entry.bestRating = entry.ratings.length ? Math.max(...entry.ratings) : null;
+    entry.averageRating = entry.ratings.length
+      ? entry.ratings.reduce((sum, rating) => sum + rating, 0) / entry.ratings.length
+      : null;
+  });
+
+  const themeParkList = Array.from(themeParkMap.values())
+    .sort((a, b) => (
+      (b.bestRating ?? -Infinity) - (a.bestRating ?? -Infinity)
+      || (b.averageRating ?? -Infinity) - (a.averageRating ?? -Infinity)
+      || b.lastVisitMs - a.lastVisitMs
+      || a.title.localeCompare(b.title, "fr-FR")
+    ))
+    .map((entry, index) => ({
+      ...entry,
+      rank: index + 1
+    }));
+
+  const topThemeParkEntry = themeParkList[0] || null;
+  const themeParksPodiumMarkup = createThemeParksPodiumMarkup(themeParkList);
+  const themeParksRankingMarkup = createThemeParksRankingMarkup(themeParkList);
+
   const countriesList = Array.from(uniqueCountriesMap.values());
   const countriesCoveragePct = uniqueCountriesMap.size ? (uniqueCountriesMap.size / TOTAL_COUNTRIES) * 100 : 0;
   const countriesGroupedByContinent = CONTINENT_ORDER
@@ -2127,6 +2294,12 @@ function renderStats() {
     statsEls.artistsSeenMeta.textContent = topArtistEntry
       ? `${topArtistEntry.name} · ${topArtistEntry.eventTitle} (${topArtistEntry.eventYear}) · ${formatArtistRating(topArtistEntry.rating)}`
       : "Basé sur les lineups renseignés";
+  }
+  if (statsEls.themeParks) statsEls.themeParks.textContent = String(themeParkList.length);
+  if (statsEls.themeParksMeta) {
+    statsEls.themeParksMeta.textContent = topThemeParkEntry
+      ? `${topThemeParkEntry.title} · ${formatThemeParkPlace(topThemeParkEntry)} · ${formatParkRating(topThemeParkEntry.bestRating)}`
+      : "Basé sur le tag theme park et la note";
   }
   if (statsEls.years) statsEls.years.textContent = String(years.size);
   if (statsEls.breakdown) statsEls.breakdown.innerHTML = breakdownItems;
@@ -2198,6 +2371,16 @@ function renderStats() {
     })
   });
 
+  const ratedThemeParkCount = themeParkList.filter((entry) => Number.isFinite(entry.bestRating)).length;
+
+  setStatDetail("themeParks", {
+    title: "Parcs d'attractions",
+    subtitle: themeParkList.length
+      ? `${themeParkEvents.length} visite${themeParkEvents.length > 1 ? "s" : ""}`
+      : "Aucun parc d'attractions détecté",
+    html: `${themeParksPodiumMarkup}${themeParksRankingMarkup}`
+  });
+
   bindStatCard(statCards.countries, "countries", "Afficher la liste des pays visités");
   bindStatCard(statCards.livedPlaces, "livedPlaces", "Afficher le détail des endroits vécus");
   bindStatCard(statCards.cities, "cities", "Afficher la liste des villes référencées");
@@ -2207,6 +2390,7 @@ function renderStats() {
   bindStatCard(statCards.bestYear, "bestYear", "Afficher tous les événements de l'année la plus active");
   bindStatCard(statCards.topCountry, "topCountry", "Afficher les événements liés au pays le plus visité");
   bindStatCard(statCards.artistsSeen, "artistsSeen", "Afficher la liste des artistes vus");
+  bindStatCard(statCards.themeParks, "themeParks", "Afficher la liste des parcs d'attractions");
 }
 
 function getStepDateMs(step, fallbackDate) {
