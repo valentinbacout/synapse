@@ -1101,16 +1101,16 @@ const statsEls = {
 };
 
 const statCards = {
-  countries: statsEls.countries?.closest(".stat-card") || null,
-  livedPlaces: statsEls.livedPlaces?.closest(".stat-card") || null,
-  cities: statsEls.cities?.closest(".stat-card") || null,
-  travels: statsEls.travels?.closest(".stat-card") || null,
-  distance: statsEls.distance?.closest(".stat-card") || null,
-  longest: statsEls.longest?.closest(".stat-card") || null,
-  bestYear: statsEls.bestYear?.closest(".stat-card") || null,
-  topCountry: statsEls.topCountry?.closest(".stat-card") || null,
-  artistsSeen: statsEls.artistsSeen?.closest(".stat-card") || null,
-  themeParks: statsEls.themeParks?.closest(".stat-card") || null
+  countries: document.querySelector('[data-stat-key="countries"]') || null,
+  livedPlaces: document.querySelector('[data-stat-key="livedPlaces"]') || null,
+  cities: document.querySelector('[data-stat-key="cities"]') || null,
+  travels: document.querySelector('[data-stat-key="travels"]') || null,
+  distance: document.querySelector('[data-stat-key="distance"]') || null,
+  longest: document.querySelector('[data-stat-key="longest"]') || null,
+  bestYear: document.querySelector('[data-stat-key="bestYear"]') || null,
+  topCountry: document.querySelector('[data-stat-key="topCountry"]') || null,
+  artistsSeen: document.querySelector('[data-stat-key="artistsSeen"]') || null,
+  themeParks: document.querySelector('[data-stat-key="themeParks"]') || null
 };
 
 let statsModalEl = null;
@@ -1668,6 +1668,74 @@ function bindStatCard(card, detailKey, metaText) {
     }
   });
 }
+
+function setVisualMarkup(elementId, markup) {
+  const element = document.getElementById(elementId);
+  if (!element) return;
+  element.innerHTML = markup || "";
+}
+
+function createMiniBarsMarkup(entries = [], options = {}) {
+  if (!entries.length) {
+    return '<p class="stat-visual-empty">Pas assez de données.</p>';
+  }
+
+  const maxValue = Math.max(...entries.map((entry) => Number(entry.value) || 0), 1);
+  const formatter = typeof options.valueFormatter === "function"
+    ? options.valueFormatter
+    : (value) => String(value);
+
+  return `
+    <div class="mini-bars">
+      ${entries.map((entry) => {
+        const ratio = Math.max(6, Math.round(((Number(entry.value) || 0) / maxValue) * 100));
+        return `
+          <div class="mini-bar-row">
+            <div class="mini-bar-row__top">
+              <span class="mini-bar-row__label">${escapeHtml(entry.label || "-")}</span>
+              <span class="mini-bar-row__value">${escapeHtml(formatter(entry.value, entry))}</span>
+            </div>
+            <div class="mini-bar-row__track"><span class="mini-bar-row__fill" style="width:${ratio}%"></span></div>
+            ${entry.meta ? `<div class="mini-bar-row__meta">${escapeHtml(entry.meta)}</div>` : ""}
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+function createMiniPodiumMarkup(entries = []) {
+  if (!entries.length) {
+    return '<p class="stat-visual-empty">Pas assez de données.</p>';
+  }
+
+  return `
+    <div class="mini-podium">
+      ${entries.slice(0, 3).map((entry, index) => `
+        <div class="mini-podium__item">
+          <span class="mini-podium__rank">#${index + 1}</span>
+          <span class="mini-podium__name">${escapeHtml(entry.name || entry.title || "-")}</span>
+          <span class="mini-podium__meta">${escapeHtml(entry.meta || "")}</span>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+function createKpiStripMarkup(items = []) {
+  if (!items.length) return "";
+  return `
+    <div class="kpi-strip">
+      ${items.map((item) => `
+        <div class="kpi-strip__item">
+          <span class="kpi-strip__label">${escapeHtml(item.label || "")}</span>
+          <strong class="kpi-strip__value">${escapeHtml(item.value || "-")}</strong>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
 
 function setStatDetail(detailKey, config) {
   statsDetailDefinitions.set(detailKey, config);
@@ -2304,6 +2372,63 @@ function renderStats() {
   if (statsEls.years) statsEls.years.textContent = String(years.size);
   if (statsEls.breakdown) statsEls.breakdown.innerHTML = breakdownItems;
 
+  const countryEntries = Object.entries(countryCount)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "fr-FR"));
+  const cityVisitCounts = new Map();
+  allLocations.forEach((location) => {
+    const label = formatLocationLabel(location);
+    if (!label || label === "Lieu non précisé") return;
+    cityVisitCounts.set(label, (cityVisitCounts.get(label) || 0) + 1);
+  });
+  const topCities = Array.from(cityVisitCounts.entries())
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "fr-FR"))
+    .slice(0, 3)
+    .map(([label, value]) => ({ label, value, meta: `${value} occurrence${value > 1 ? "s" : ""}` }));
+  const topCountriesBars = countryEntries.slice(0, 3).map(([country, value]) => ({
+    label: formatCountry(country),
+    value,
+    meta: `${value} événement${value > 1 ? "s" : ""}`
+  }));
+  const topCountryShare = topCountryCount > 0
+    ? `${formatPercent((topCountryCount / Math.max(countryEntries.reduce((sum, [, count]) => sum + count, 0), 1)) * 100)} % des visites hors France`
+    : "Aucune visite hors France";
+  const bestYearsBars = Object.entries(eventsPerYear)
+    .sort((a, b) => b[1] - a[1] || Number(b[0]) - Number(a[0]))
+    .slice(0, 3)
+    .map(([year, value]) => ({ label: String(year), value, meta: `${value} événement${value > 1 ? "s" : ""}` }));
+
+  setVisualMarkup("stat-distance-visual", createKpiStripMarkup([
+    { label: "Trajets", value: String(distanceDetailItems.length) },
+    { label: "Plus long", value: `${Math.round(longestDistance)} km` }
+  ]));
+  setVisualMarkup("stat-countries-visual", createMiniBarsMarkup(topCountriesBars, {
+    valueFormatter: (value) => `${value}`
+  }));
+  setVisualMarkup("stat-top-country-visual", topCountry
+    ? `${createKpiStripMarkup([{ label: "Événements", value: String(topCountryCount) }])}<div class="stat-hero-caption">${escapeHtml(topCountryShare)}</div>`
+    : '<p class="stat-visual-empty">Aucune donnée hors France.</p>');
+  setVisualMarkup("stat-best-year-visual", createMiniBarsMarkup(bestYearsBars, {
+    valueFormatter: (value) => `${value}`
+  }));
+  setVisualMarkup("stat-cities-visual", createMiniBarsMarkup(topCities, {
+    valueFormatter: (value) => `${value}`
+  }));
+  setVisualMarkup("stat-longest-visual", longestTrip
+    ? createKpiStripMarkup([{ label: "Départ", value: longestTrip.from }, { label: "Arrivée", value: longestTrip.to }])
+    : '<p class="stat-visual-empty">Aucun trajet détecté.</p>');
+  setVisualMarkup("stat-artists-visual", createMiniPodiumMarkup(
+    rankedArtistPerformances.slice(0, 3).map((entry) => ({
+      name: entry.name,
+      meta: `${entry.eventTitle} · ${formatArtistRating(entry.rating)}`
+    }))
+  ));
+  setVisualMarkup("stat-theme-parks-visual", createMiniPodiumMarkup(
+    themeParkList.slice(0, 3).map((entry) => ({
+      name: entry.title,
+      meta: `${formatThemeParkPlace(entry)} · ${formatParkRating(entry.bestRating)}`
+    }))
+  ));
+
   setStatDetail("countries", {
     title: "Pays visités — Général",
     subtitle: `${countriesList.length} pays / ${TOTAL_COUNTRIES} · ${formatPercent(countriesCoveragePct)} % du monde`,
@@ -2348,6 +2473,38 @@ function renderStats() {
     html: createStatDetailList(distanceDetailItems)
   });
 
+  setStatDetail("longest", {
+    title: "Plus long trajet",
+    subtitle: longestTrip
+      ? `${Math.round(longestDistance)} km · ${longestTrip.from} → ${longestTrip.to}`
+      : "Aucun trajet détecté",
+    html: longestTrip
+      ? createStatDetailList([{ title: `${longestTrip.from} → ${longestTrip.to}`, meta: `${formatDetailDateRange(longestTrip.startDate, longestTrip.endDate)} · ${Math.round(longestDistance)} km`, chips: [longestTrip.eventTitle || "Trajet"] }])
+      : '<p class="stats-detail-empty">Aucun trajet détecté.</p>'
+  });
+
+  setStatDetail("cities", {
+    title: "Villes référencées",
+    subtitle: `${citiesList.length} ville${citiesList.length > 1 ? "s" : ""} unique${citiesList.length > 1 ? "s" : ""}`,
+    html: createStatDetailList(
+      citiesList.map((city) => ({
+        title: formatLocationLabel(city)
+      }))
+    )
+  });
+
+  setStatDetail("topCountry", {
+    title: "Pays le plus visité",
+    subtitle: topCountry
+      ? `${formatCountry(topCountry)} · ${topCountryCount} événement${topCountryCount > 1 ? "s" : ""}`
+      : "Aucun pays détecté",
+    html: createStatDetailList(
+      topCountryEvents.map((event) => ({
+        title: event.title || "Sans titre",
+        meta: formatEventDateRange(event)
+      }))
+    )
+  });
 
   setStatDetail("bestYear", {
     title: "Année la plus active",
