@@ -1121,10 +1121,6 @@ let statsModalCloseEl = null;
 let activeStatDetailKey = null;
 const statsDetailDefinitions = new Map();
 
-function escapeAttribute(value) {
-  return escapeHtml(String(value ?? "")).replace(/`/g, "&#96;");
-}
-
 function titleCase(value) {
   const text = String(value || "").trim();
   if (!text) return "-";
@@ -1320,6 +1316,98 @@ function normalizeCountryKey(value) {
     .toLowerCase();
 }
 
+const COUNTRY_TO_FLAG_CODE = {
+  "france": "FR",
+  "belgique": "BE",
+  "monaco": "MC",
+  "luxembourg": "LU",
+  "pays bas": "NL",
+  "pays-bas": "NL",
+  "angleterre": "GB",
+  "royaume uni": "GB",
+  "royaume-uni": "GB",
+  "espagne": "ES",
+  "italie": "IT",
+  "malte": "MT",
+  "danemark": "DK",
+  "suede": "SE",
+  "finlande": "FI",
+  "russie": "RU",
+  "estonie": "EE",
+  "hongrie": "HU",
+  "slovaquie": "SK",
+  "autriche": "AT",
+  "republique tcheque": "CZ",
+  "tchequie": "CZ",
+  "allemagne": "DE",
+  "suisse": "CH",
+  "vatican": "VA",
+  "malaisie": "MY",
+  "singapour": "SG",
+  "emirats arabes unis": "AE"
+};
+
+function escapeAttribute(value) {
+  return escapeHtml(String(value ?? "")).replace(/`/g, "&#96;");
+}
+
+function buildFlagSvg(countryCode, countryLabel = "") {
+  const code = String(countryCode || "").trim().toUpperCase();
+  if (!/^[A-Z]{2}$/.test(code)) return "";
+
+  const title = escapeAttribute(countryLabel || code);
+  const defs = {
+    FR: '<rect width="27" height="18" fill="#fff"/><rect width="9" height="18" fill="#1f4db6"/><rect x="18" width="9" height="18" fill="#d71f35"/>',
+    IT: '<rect width="27" height="18" fill="#fff"/><rect width="9" height="18" fill="#1f8b4c"/><rect x="18" width="9" height="18" fill="#d71f35"/>',
+    BE: '<rect width="27" height="18" fill="#ffd90c"/><rect width="9" height="18" fill="#111"/><rect x="18" width="9" height="18" fill="#d71f35"/>',
+    MY: '<rect width="27" height="18" fill="#fff"/><rect y="0" width="27" height="2" fill="#c81e2b"/><rect y="4" width="27" height="2" fill="#c81e2b"/><rect y="8" width="27" height="2" fill="#c81e2b"/><rect y="12" width="27" height="2" fill="#c81e2b"/><rect y="16" width="27" height="2" fill="#c81e2b"/><rect width="13" height="10" fill="#153a8a"/><circle cx="5.7" cy="5" r="3" fill="#f7d046"/><circle cx="6.6" cy="5" r="2.4" fill="#153a8a"/><polygon points="9.6,2.2 10.2,4 12.1,4 10.6,5.1 11.2,6.9 9.6,5.8 8.1,6.9 8.7,5.1 7.2,4 9,4" fill="#f7d046"/>',
+    SG: '<rect width="27" height="9" fill="#df1e35"/><rect y="9" width="27" height="9" fill="#fff"/><circle cx="6" cy="4.8" r="3.2" fill="#fff"/><circle cx="7.2" cy="4.8" r="2.6" fill="#df1e35"/><circle cx="9.4" cy="2.7" r=".6" fill="#fff"/><circle cx="10.6" cy="4.1" r=".6" fill="#fff"/><circle cx="10.1" cy="5.9" r=".6" fill="#fff"/><circle cx="8.7" cy="6.9" r=".6" fill="#fff"/><circle cx="7.3" cy="5.7" r=".6" fill="#fff"/>',
+    MC: '<rect width="27" height="9" fill="#d71f35"/><rect y="9" width="27" height="9" fill="#fff"/>',
+    ES: '<rect width="27" height="18" fill="#f1c40f"/><rect width="27" height="4" fill="#c81e2b"/><rect y="14" width="27" height="4" fill="#c81e2b"/>',
+    MT: '<rect width="13.5" height="18" fill="#fff"/><rect x="13.5" width="13.5" height="18" fill="#d71f35"/><rect x="2" y="2" width="3.2" height="3.2" fill="#b4b4b4"/><rect x="3" y="1" width="1.2" height="5.2" fill="#b4b4b4"/><rect x="1" y="3" width="5.2" height="1.2" fill="#b4b4b4"/>',
+    NL: '<rect width="27" height="6" fill="#ae1c28"/><rect y="6" width="27" height="6" fill="#fff"/><rect y="12" width="27" height="6" fill="#21468b"/>',
+    LU: '<rect width="27" height="6" fill="#ef3340"/><rect y="6" width="27" height="6" fill="#fff"/><rect y="12" width="27" height="6" fill="#00a3e0"/>',
+    DE: '<rect width="27" height="6" fill="#111"/><rect y="6" width="27" height="6" fill="#d71f35"/><rect y="12" width="27" height="6" fill="#f1c40f"/>',
+    RU: '<rect width="27" height="6" fill="#fff"/><rect y="6" width="27" height="6" fill="#1f4db6"/><rect y="12" width="27" height="6" fill="#d71f35"/>',
+    EE: '<rect width="27" height="6" fill="#4891d9"/><rect y="6" width="27" height="6" fill="#111"/><rect y="12" width="27" height="6" fill="#fff"/>',
+    HU: '<rect width="27" height="6" fill="#d71f35"/><rect y="6" width="27" height="6" fill="#fff"/><rect y="12" width="27" height="6" fill="#1f8b4c"/>',
+    SK: '<rect width="27" height="6" fill="#fff"/><rect y="6" width="27" height="6" fill="#1f4db6"/><rect y="12" width="27" height="6" fill="#d71f35"/>',
+    AT: '<rect width="27" height="6" fill="#d71f35"/><rect y="6" width="27" height="6" fill="#fff"/><rect y="12" width="27" height="6" fill="#d71f35"/>',
+    CZ: '<rect width="27" height="9" fill="#fff"/><rect y="9" width="27" height="9" fill="#d71f35"/><polygon points="0,0 11,9 0,18" fill="#1f4db6"/>',
+    CH: '<rect width="27" height="18" fill="#d71f35"/><rect x="11" y="3" width="5" height="12" fill="#fff"/><rect x="7.5" y="6.5" width="12" height="5" fill="#fff"/>',
+    VA: '<rect width="13.5" height="18" fill="#f1c40f"/><rect x="13.5" width="13.5" height="18" fill="#fff"/>',
+    DK: '<rect width="27" height="18" fill="#c81e2b"/><rect x="8" width="2.4" height="18" fill="#fff"/><rect y="7.5" width="27" height="3" fill="#fff"/>',
+    SE: '<rect width="27" height="18" fill="#1f4db6"/><rect x="8" width="2.6" height="18" fill="#f1c40f"/><rect y="7.5" width="27" height="3" fill="#f1c40f"/>',
+    FI: '<rect width="27" height="18" fill="#fff"/><rect x="8" width="3" height="18" fill="#1f4db6"/><rect y="7.5" width="27" height="3" fill="#1f4db6"/>',
+    GB: '<rect width="27" height="18" fill="#1f4db6"/><path d="M0,0 27,18 M27,0 0,18" stroke="#fff" stroke-width="4"/><path d="M0,0 27,18 M27,0 0,18" stroke="#d71f35" stroke-width="2"/><rect x="11" width="5" height="18" fill="#fff"/><rect y="6.5" width="27" height="5" fill="#fff"/><rect x="12" width="3" height="18" fill="#d71f35"/><rect y="7.5" width="27" height="3" fill="#d71f35"/>',
+    AE: '<rect x="5.4" width="21.6" height="6" fill="#1f8b4c"/><rect x="5.4" y="6" width="21.6" height="6" fill="#fff"/><rect x="5.4" y="12" width="21.6" height="6" fill="#111"/><rect width="5.4" height="18" fill="#d71f35"/>'
+  };
+
+  const body = defs[code];
+  if (!body) return "";
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 27 18" role="img" aria-label="Drapeau ${title}"><title>Drapeau ${title}</title><rect width="27" height="18" rx="2" fill="#dbe4ff"/>${body}<rect width="27" height="18" rx="2" fill="none" stroke="rgba(15,23,42,.18)"/></svg>`;
+}
+
+function getCountryFlag(country) {
+  const code = COUNTRY_TO_FLAG_CODE[normalizeCountryKey(country)];
+  return code ? buildFlagSvg(code, titleCase(country) || code) : "";
+}
+
+function getCountryFlagMarkup(country, className = "country-flag") {
+  const svg = getCountryFlag(country);
+  if (!svg) return "";
+  const dataUri = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+  const label = titleCase(country) || "Pays";
+  return `<img class="${escapeAttribute(className)}" src="${dataUri}" alt="Drapeau ${escapeAttribute(label)}" loading="lazy" decoding="async">`;
+}
+
+function formatCountryLabelWithFlag(country) {
+  const label = titleCase(country) || "-";
+  const flagMarkup = getCountryFlagMarkup(country);
+  return flagMarkup ? `${flagMarkup}<span>${escapeHtml(label)}</span>` : escapeHtml(label);
+}
+
 function getContinentForCountry(country) {
   const key = normalizeCountryKey(country);
   return COUNTRY_TO_CONTINENT[key] || "Autres";
@@ -1459,6 +1547,10 @@ function createStatDetailList(items = [], options = {}) {
     <div class="${listClassName}">
       ${items.map((item) => {
     const title = escapeHtml(item.title || "Sans titre");
+    const titleMarkup = typeof item.titleHtml === "string" && item.titleHtml.trim()
+      ? item.titleHtml
+      : `<span>${title}</span>`;
+    const titlePrefix = item.titlePrefix ? `<span class="stats-detail-item__title-prefix" aria-hidden="true">${escapeHtml(item.titlePrefix)}</span>` : "";
     const meta = item.meta ? `
 <div class="stats-detail-item__meta">
   ${item.chips && item.chips.length
@@ -1474,7 +1566,7 @@ function createStatDetailList(items = [], options = {}) {
     return `
           <article class="stats-detail-item">
             <div class="stats-detail-item__main">
-              <div class="stats-detail-item__title">${title}</div>
+              <div class="stats-detail-item__title">${titlePrefix}${titleMarkup}</div>
               ${meta}
               ${chips}
             </div>
@@ -1639,7 +1731,13 @@ function openStatsModal(detailKey) {
 
   activeStatDetailKey = detailKey;
   statsModalTitleEl.textContent = definition.title || "Détail statistique";
-  statsModalSubtitleEl.textContent = definition.subtitle || "";
+
+  if (typeof definition.subtitleHtml === "string") {
+    statsModalSubtitleEl.innerHTML = definition.subtitleHtml;
+  } else {
+    statsModalSubtitleEl.textContent = definition.subtitle || "";
+  }
+
   statsModalBodyEl.innerHTML = definition.html || '<p class="stats-detail-empty">Aucun détail disponible.</p>';
 
   statsModalEl.classList.add("is-open");
@@ -1687,15 +1785,23 @@ function createMiniBarsMarkup(entries = [], options = {}) {
   const formatter = typeof options.valueFormatter === "function"
     ? options.valueFormatter
     : (value) => String(value);
+  const labelPrefix = typeof options.labelPrefix === "function"
+    ? options.labelPrefix
+    : () => "";
+  const labelPrefixHtml = typeof options.labelPrefixHtml === "function"
+    ? options.labelPrefixHtml
+    : () => "";
 
   return `
     <div class="mini-bars">
       ${entries.map((entry) => {
         const ratio = Math.max(6, Math.round(((Number(entry.value) || 0) / maxValue) * 100));
+        const prefix = labelPrefix(entry);
+        const prefixHtml = labelPrefixHtml(entry);
         return `
           <div class="mini-bar-row">
             <div class="mini-bar-row__top">
-              <span class="mini-bar-row__label">${escapeHtml(entry.label || "-")}</span>
+              <span class="mini-bar-row__label">${prefixHtml || (prefix ? `<span class="mini-bar-row__prefix" aria-hidden="true">${escapeHtml(prefix)}</span>` : "")}<span>${escapeHtml(entry.label || "-")}</span></span>
               <span class="mini-bar-row__value">${escapeHtml(formatter(entry.value, entry))}</span>
             </div>
             <div class="mini-bar-row__track"><span class="mini-bar-row__fill" style="width:${ratio}%"></span></div>
@@ -1712,10 +1818,12 @@ function createMiniPodiumMarkup(entries = []) {
     return '<p class="stat-visual-empty">Pas assez de données.</p>';
   }
 
+  const placeClasses = ["gold", "silver", "bronze"];
+
   return `
     <div class="mini-podium">
       ${entries.slice(0, 3).map((entry, index) => `
-        <div class="mini-podium__item">
+        <div class="mini-podium__item mini-podium__item--${placeClasses[index] || "default"}">
           <span class="mini-podium__rank">#${index + 1}</span>
           <span class="mini-podium__name">${escapeHtml(entry.name || entry.title || "-")}</span>
           <span class="mini-podium__meta">${escapeHtml(entry.meta || "")}</span>
@@ -2315,9 +2423,10 @@ function renderStats() {
     .map((continent) => {
       const items = countriesList
         .filter((country) => getContinentForCountry(country) === continent)
-        
         .map((country) => ({
-          title: titleCase(country)
+          title: titleCase(country),
+          titleHtml: formatCountryLabelWithFlag(country),
+          flagMarkup: getCountryFlagMarkup(country, "country-flag country-flag--mini")
         }));
 
       const continentTotal = CONTINENT_TOTAL_COUNTRIES[continent] || 0;
@@ -2356,7 +2465,7 @@ function renderStats() {
   if (statsEls.bestYearMeta) {
     statsEls.bestYearMeta.textContent = `${bestYearCount} événement${bestYearCount > 1 ? "s" : ""}`;
   }
-  if (statsEls.topCountry) statsEls.topCountry.textContent = formatCountry(topCountry);
+  if (statsEls.topCountry) statsEls.topCountry.innerHTML = formatCountryLabelWithFlag(topCountry);
   if (statsEls.topCountryMeta) {
     statsEls.topCountryMeta.textContent = `${topCountryCount} événement${topCountryCount > 1 ? "s" : ""}`;
   }
@@ -2397,8 +2506,10 @@ function renderStats() {
     .slice(0, 3);
   const topCountriesBars = countryEntries.slice(0, 3).map(([country, value]) => ({
     label: formatCountry(country),
+    country,
     value,
-    meta: `${value} événement${value > 1 ? "s" : ""}`
+    meta: `${value} événement${value > 1 ? "s" : ""}`,
+    flagMarkup: getCountryFlagMarkup(country, "country-flag country-flag--mini")
   }));
   const topCountryShare = topCountryCount > 0
     ? `${formatPercent((topCountryCount / Math.max(countryEntries.reduce((sum, [, count]) => sum + count, 0), 1)) * 100)} % des visites hors France`
@@ -2418,7 +2529,8 @@ function renderStats() {
   }));
   setVisualMarkup("stat-top-country-visual", topCountry
     ? `${createMiniBarsMarkup(topCountriesBars, {
-        valueFormatter: (value) => `${value}`
+        valueFormatter: (value) => `${value}`,
+        labelPrefixHtml: (entry) => entry.flagMarkup || ""
       })}<div class="stat-hero-caption">${escapeHtml(topCountryShare)}</div>`
     : '<p class="stat-visual-empty">Aucune donnée hors France.</p>');
   setVisualMarkup("stat-best-year-visual", createMiniBarsMarkup(bestYearsBars, {
@@ -2510,7 +2622,10 @@ function renderStats() {
   setStatDetail("topCountry", {
     title: "Pays le plus visité",
     subtitle: topCountry
-      ? `${formatCountry(topCountry)} · ${topCountryCount} événement${topCountryCount > 1 ? "s" : ""}`
+      ? `${titleCase(topCountry)} · ${topCountryCount} événement${topCountryCount > 1 ? "s" : ""}`
+      : "Aucun pays détecté",
+    subtitleHtml: topCountry
+      ? `${formatCountryLabelWithFlag(topCountry)} · ${topCountryCount} événement${topCountryCount > 1 ? "s" : ""}`
       : "Aucun pays détecté",
     html: createStatDetailList(
       topCountryEvents.map((event) => ({

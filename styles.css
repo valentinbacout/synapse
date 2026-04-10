@@ -1411,6 +1411,16 @@ body.has-stats-modal-open {
   color: #f8fafc;
   font-weight: 700;
   line-height: 1.35;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stats-detail-item__title-prefix,
+.mini-bar-row__prefix {
+  flex: 0 0 auto;
+  font-size: 1.1em;
+  line-height: 1;
 }
 
 .stats-detail-item__meta {
@@ -1885,6 +1895,17 @@ body.has-stats-modal-open {
   gap: 10px;
 }
 
+.mini-bar-row__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.mini-bar-row__label img{
+  margin-right: 8px;
+}
+
 .mini-bar-row__label,
 .mini-bar-row__value,
 .mini-bar-row__meta {
@@ -1934,9 +1955,24 @@ body.has-stats-modal-open {
   border: 1px solid rgba(148, 163, 184, 0.1);
 }
 
+.mini-podium__item--gold {
+  background: linear-gradient(180deg, rgba(254, 243, 199, 0.5) 0%, rgba(251, 191, 36, 0.5) 100%);
+  border-color: rgba(251, 191, 36, 0.28);
+}
+
+.mini-podium__item--silver {
+  background: linear-gradient(180deg, rgba(226, 232, 240, 0.5) 0%, rgba(148, 163, 184, 0.5) 100%);
+  border-color: rgba(203, 213, 225, 0.24);
+}
+
+.mini-podium__item--bronze {
+  background: linear-gradient(180deg, rgba(254, 215, 170, 0.5) 0%, rgba(194, 65, 12, 0.5) 100%);
+  border-color: rgba(251, 146, 60, 0.24);
+}
+
 .mini-podium__rank {
   grid-row: 1 / span 2;
-  color: #93c5fd;
+  color: rgba(15, 23, 42, 0.88);
   font-weight: 800;
   font-size: 13px;
 }
@@ -1948,7 +1984,7 @@ body.has-stats-modal-open {
 }
 
 .mini-podium__meta {
-  color: #94a3b8;
+  color: rgba(226, 232, 240, 0.9);
   font-size: 12px;
 }
 
@@ -2009,4 +2045,52 @@ body.has-stats-modal-open {
   .stat-card--medium {
     min-height: auto;
   }
+}
+
+
+.country-flag {
+  display: inline-block;
+  width: 1.1em;
+  height: .8em;
+  object-fit: cover;
+  border-radius: .2em;
+  vertical-align: -.08em;
+  margin-right: .3em;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.08);
+}
+
+.country-flag--mini {
+  width: 18px;
+  height: 12px;
+  margin-right: 0;
+  vertical-align: middle;
+}
+
+#stat-top-country {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+#stat-top-country .country-flag {
+  width: 56px;
+  height: 38px;
+  border-radius: 8px;
+  flex: 0 0 auto;
+  margin-right: 0;
+}
+
+.mini-bar-row__flag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+  flex: 0 0 auto;
+}
+
+.mini-bar-row__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
 }
