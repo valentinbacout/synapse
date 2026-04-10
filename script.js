@@ -1085,6 +1085,7 @@ const statsEls = {
   countries: document.getElementById("stat-countries"),
   cities: document.getElementById("stat-cities"),
   travels: document.getElementById("stat-travels"),
+  travelsMeta: document.getElementById("stat-travels-meta"),
   distance: document.getElementById("stat-distance"),
   longest: document.getElementById("stat-longest"),
   longestMeta: document.getElementById("stat-longest-meta"),
@@ -2453,7 +2454,16 @@ function renderStats() {
   if (statsEls.livedPlaces) statsEls.livedPlaces.textContent = String(uniqueLivedPlacesMap.size);
   if (statsEls.countries) statsEls.countries.textContent = `${uniqueCountriesMap.size} (${formatPercent(countriesCoveragePct)} %)`;
   if (statsEls.cities) statsEls.cities.textContent = String(uniqueCitiesMap.size);
-  if (statsEls.travels) statsEls.travels.textContent = String(travelEvents.length);
+  const travelYearsWithTrips = Array.from(new Set(travelEvents.map((event) => new Date(event.startMs).getFullYear()))).sort((a, b) => a - b);
+  const averageTravelPerYear = travelYearsWithTrips.length
+    ? travelEvents.length / travelYearsWithTrips.length
+    : 0;
+  if (statsEls.travels) statsEls.travels.textContent = formatPercent(averageTravelPerYear);
+  if (statsEls.travelsMeta) {
+    statsEls.travelsMeta.textContent = travelYearsWithTrips.length
+      ? `${travelEvents.length} voyage${travelEvents.length > 1 ? "s" : ""} sur ${travelYearsWithTrips.length} an${travelYearsWithTrips.length > 1 ? "s" : ""}`
+      : "Basé sur les voyages hors France";
+  }
   if (statsEls.distance) statsEls.distance.textContent = `${Math.round(totalDistance)} km`;
   if (statsEls.longest) statsEls.longest.textContent = `${Math.round(longestDistance)} km`;
   if (statsEls.longestMeta) {
@@ -2518,6 +2528,19 @@ function renderStats() {
     .sort((a, b) => b[1] - a[1] || Number(b[0]) - Number(a[0]))
     .slice(0, 3)
     .map(([year, value]) => ({ label: String(year), value, meta: `${value} événement${value > 1 ? "s" : ""}` }));
+  const travelEventsPerYear = travelEvents.reduce((acc, event) => {
+    const year = new Date(event.startMs).getFullYear();
+    acc[year] = (acc[year] || 0) + 1;
+    return acc;
+  }, {});
+  const travelYearsBars = Object.entries(travelEventsPerYear)
+    .sort((a, b) => Number(a[0]) - Number(b[0]))
+    .slice(-3)
+    .map(([year, value]) => ({
+      label: String(year),
+      value,
+      meta: `${value} voyage${value > 1 ? "s" : ""}`
+    }));
 
   setVisualMarkup("stat-distance-visual", createKpiStripMarkup([
     { label: "Trajets", value: String(distanceDetailItems.length) },
@@ -2533,6 +2556,11 @@ function renderStats() {
         labelPrefixHtml: (entry) => entry.flagMarkup || ""
       })}<div class="stat-hero-caption">${escapeHtml(topCountryShare)}</div>`
     : '<p class="stat-visual-empty">Aucune donnée hors France.</p>');
+  setVisualMarkup("stat-travels-visual", travelYearsBars.length
+    ? createMiniBarsMarkup(travelYearsBars, {
+        valueFormatter: (value) => `${value}`
+      })
+    : '<p class="stat-visual-empty">Aucun voyage détecté.</p>');
   setVisualMarkup("stat-best-year-visual", createMiniBarsMarkup(bestYearsBars, {
     valueFormatter: (value) => `${value}`
   }));
@@ -2583,14 +2611,20 @@ function renderStats() {
   });
 
   setStatDetail("travels", {
-    title: "Voyages hors France",
-    subtitle: `${travelEvents.length} voyage${travelEvents.length > 1 ? "s" : ""} détecté${travelEvents.length > 1 ? "s" : ""}`,
-    html: createStatDetailList(
-      travelEvents.map((event) => ({
-        title: event.title || "Voyage",
-        meta: formatEventDateRange(event)
-      }))
-    )
+    title: "Moyenne de voyages par an",
+    subtitle: travelYearsWithTrips.length
+      ? `${formatPercent(averageTravelPerYear)} voyage${averageTravelPerYear > 1 ? "s" : ""} / an · ${travelEvents.length} voyage${travelEvents.length > 1 ? "s" : ""} sur ${travelYearsWithTrips.length} an${travelYearsWithTrips.length > 1 ? "s" : ""}`
+      : "Aucun voyage détecté",
+    html: createGroupedStatDetailList([
+      {
+        title: "Liste des voyages",
+        meta: `${travelEvents.length} entrée${travelEvents.length > 1 ? "s" : ""}`,
+        items: travelEvents.map((event) => ({
+          title: event.title || "Voyage",
+          meta: formatEventDateRange(event)
+        }))
+      }
+    ],)
   });
 
   setStatDetail("distance", {
