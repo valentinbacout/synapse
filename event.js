@@ -363,6 +363,18 @@ const rawTimelineEvents = [
       color: "#ffbdcb",
       youtubeUrl: "https://www.youtube.com/watch?v=FfRxwOQFKSk",
     },
+      {
+      title: "Life Tracker",
+      category: "projects",
+      startDate: "2026-03-22",
+      color: "#2F3F56",
+    },
+      {
+      title: "Changement de nom Bricks Creations -> BrickV3rse",
+      category: "projects",
+      startDate: "2026-04-14",
+      color: "#f0932b",
+    },
 
   // EVENTS
   {
