@@ -3294,6 +3294,7 @@ function getNodeTypeLabel(type) {
   return ({
     event: "Élément",
     category: "Catégorie",
+    country: "Pays",
     city: "Ville",
     artist: "Artiste",
     tag: "Tag"
@@ -3357,10 +3358,36 @@ function buildNetworkGraphData(activeCategoriesSet = getActiveCategories()) {
         meta: [event.city, event.country].filter(Boolean).join(", ")
       });
       ensureLink(eventNodeId, cityNodeId, "city");
+
+      if (event.country) {
+        const countryNodeId = `country:${normalizeTagValue(event.country)}`;
+        ensureNode(countryNodeId, {
+          type: "country",
+          label: event.country,
+          color: "#38bdf8",
+          meta: "Pays"
+        });
+        ensureLink(cityNodeId, countryNodeId, "country");
+      }
+    }
+
+    if (event.country) {
+      const countryNodeId = `country:${normalizeTagValue(event.country)}`;
+      ensureNode(countryNodeId, {
+        type: "country",
+        label: event.country,
+        color: "#38bdf8",
+        meta: "Pays"
+      });
+
+      if (!event.city) {
+        ensureLink(eventNodeId, countryNodeId, "country");
+      }
     }
 
     getEventTags(event).forEach((tag) => {
-      const tagNodeId = `tag:${tag}`;
+      const normalizedTag = normalizeTagValue(tag);
+      const tagNodeId = `tag:${normalizedTag}`;
       ensureNode(tagNodeId, {
         type: "tag",
         label: titleCase(tag),
@@ -3368,6 +3395,11 @@ function buildNetworkGraphData(activeCategoriesSet = getActiveCategories()) {
         meta: "Tag"
       });
       ensureLink(eventNodeId, tagNodeId, "tag");
+
+      const matchingCountryNodeId = `country:${normalizedTag}`;
+      if (nodeMap.has(matchingCountryNodeId)) {
+        ensureLink(tagNodeId, matchingCountryNodeId, "country");
+      }
     });
 
     normalizeLineup(event.lineup).forEach((artistEntry) => {
@@ -3385,6 +3417,7 @@ function buildNetworkGraphData(activeCategoriesSet = getActiveCategories()) {
   const radiusBase = {
     event: 7,
     category: 12,
+    country: 11,
     city: 9,
     artist: 8,
     tag: 7
@@ -3409,6 +3442,7 @@ function getNodeTypeLabel(type) {
   return {
     event: "Élément",
     category: "Catégorie",
+    country: "Pays",
     city: "Ville",
     artist: "Artiste",
     tag: "Tag"
@@ -3534,6 +3568,7 @@ function renderKnowledgeGraph(activeCategoriesSet = getActiveCategories()) {
 
   const relationDistanceBase = {
     category: 80,
+    country: 82,
     city: 92,
     artist: 104,
     tag: 76
@@ -3541,12 +3576,17 @@ function renderKnowledgeGraph(activeCategoriesSet = getActiveCategories()) {
 
   const relationStrengthBase = {
     category: 1.08,
+    country: 1.02,
     city: 0.92,
     artist: 0.88,
     tag: 0.82
   };
 
   const simulation = d3.forceSimulation(data.nodes)
+  .alpha(1)
+  .alphaDecay(0.08)
+  .alphaMin(0.02)
+  .velocityDecay(0.5)
     .alpha(0.9)
     .alphaDecay(0.035)
     .velocityDecay(0.28)
