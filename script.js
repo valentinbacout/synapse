@@ -745,16 +745,19 @@ function getNestedStepCollections(step) {
 
   return [
     ...(Array.isArray(step.steps) ? step.steps : []),
+    ...(Array.isArray(step.steps_bis) ? step.steps_bis : []),
     ...(Array.isArray(step.steps_km) ? step.steps_km : [])
   ];
 }
 
 function getEventSteps(event, options = {}) {
   const includeRegularSteps = options.includeRegularSteps ?? true;
+  const includeBisSteps = options.includeBisSteps ?? true;
   const includeKmSteps = options.includeKmSteps ?? true;
 
   return [
     ...(includeRegularSteps && Array.isArray(event?.steps) ? event.steps : []),
+    ...(includeBisSteps && Array.isArray(event?.steps_bis) ? event.steps_bis : []),
     ...(includeKmSteps && Array.isArray(event?.steps_km) ? event.steps_km : [])
   ];
 }

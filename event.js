@@ -220,7 +220,7 @@ const rawTimelineEvents = [
       country: "Malaisie",
       latitude: 2.3622738557667207,
       longitude: 102.20449376231203,
-      steps: [
+      steps_bis: [
         {
           type: "departure",
           category: "travel",
