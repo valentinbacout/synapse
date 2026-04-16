@@ -2403,7 +2403,7 @@ body.has-stats-modal-open {
   stroke-width: 4px;
   stroke-linejoin: round;
   pointer-events: none;
-  opacity: 0;
+  opacity: 1;
   transition: opacity 0.18s ease;
 }
 

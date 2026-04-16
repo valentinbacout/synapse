@@ -3601,7 +3601,7 @@ function renderKnowledgeGraph(activeCategoriesSet = getActiveCategories()) {
     .attr("filter", "url(#network-node-glow)");
 
   node.append("text")
-    .attr("class", (d) => `network-node__label ${d.type === "event" || d.degree >= 5 ? "is-always-visible" : ""}`)
+    .attr("class", "network-node__label is-always-visible")
     .attr("x", (d) => d.radius + 8)
     .attr("y", 4)
     .text((d) => d.label);
