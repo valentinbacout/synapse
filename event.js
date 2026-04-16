@@ -1442,7 +1442,7 @@ const rawTimelineEvents = [
       color: "#095D8F",
       city: "Kuala Lumpur",
       country: "Malaisie",
-      steps: [
+      steps_bis: [
         {
           category: "travel",
           color: "#095D8F",
