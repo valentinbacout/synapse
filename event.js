@@ -495,6 +495,18 @@ const rawTimelineEvents = [
       latitude: 50.36560588145243,
       longitude: 4.332023214114497
     },
+          {
+      title: "TOSS CentraleSupélec",
+      category: "event",
+      startDate: "2023-05-15",
+      description: "Prix de l'ambiance 2023",
+      color: "#DD2517",
+      city: "Gif-sur-Yvette",
+      country: "France",
+      latitude: 48.70864495649992,
+      longitude: 2.1592213406099368,
+      youtubeUrl: "https://youtu.be/-bzoR3Ta0uU?si=9kBjnCR8j9rvlv-X"
+    },
   {
       title: "Great Day 2",
       category: "event",
@@ -1655,18 +1667,7 @@ const rawTimelineEvents = [
       description: "INS'Avengers",
       color: "#ffbdcb",
     },
-  {
-      title: "TOSS CentraleSupélec",
-      category: "association",
-      startDate: "2023-05-15",
-      description: "Prix de l'ambiance 2023",
-      color: "#DD2517",
-      city: "Gif-sur-Yvette",
-      country: "France",
-      latitude: 48.70864495649992,
-      longitude: 2.1592213406099368,
-      youtubeUrl: "https://youtu.be/-bzoR3Ta0uU?si=9kBjnCR8j9rvlv-X"
-    },
+
   {
       title: "WEI 5A",
       category: "association",
