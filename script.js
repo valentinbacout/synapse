@@ -740,6 +740,25 @@ function normalizeGalleryItems(gallery) {
     }));
 }
 
+function getNestedStepCollections(step) {
+  if (!step || typeof step !== "object") return [];
+
+  return [
+    ...(Array.isArray(step.steps) ? step.steps : []),
+    ...(Array.isArray(step.steps_km) ? step.steps_km : [])
+  ];
+}
+
+function getEventSteps(event, options = {}) {
+  const includeRegularSteps = options.includeRegularSteps ?? true;
+  const includeKmSteps = options.includeKmSteps ?? true;
+
+  return [
+    ...(includeRegularSteps && Array.isArray(event?.steps) ? event.steps : []),
+    ...(includeKmSteps && Array.isArray(event?.steps_km) ? event.steps_km : [])
+  ];
+}
+
 function flattenStepTree(steps, options = {}) {
   if (!Array.isArray(steps) || !steps.length) return [];
 
@@ -762,7 +781,7 @@ function flattenStepTree(steps, options = {}) {
     const dates = getStepDateMs(step, parentDate);
     const stepPath = [...parentPath, index];
     const stepTitle = step.title || step.city || parentTitle || "Étape";
-    const nestedSteps = Array.isArray(step.steps) ? step.steps : [];
+    const nestedSteps = getNestedStepCollections(step);
 
     const createFlatStep = (sourceStep, extra = {}) => ({
       ...sourceStep,
@@ -822,7 +841,7 @@ function createStepTreeMarkup(steps, fallbackDate, depth = 0) {
         const title = step.title || step.city || "Étape";
         const location = [step.city, step.country].filter(Boolean).join(", ");
         const childrenMarkup = createStepTreeMarkup(
-          step.steps,
+          getNestedStepCollections(step),
           step.date ?? step.startDate ?? fallbackDate,
           depth + 1
         );
@@ -853,7 +872,7 @@ function renderDrawerContent(event) {
   const location = getEventLocation(event);
   const embedUrl = normalizeYoutubeEmbed(event.youtubeUrl || event.youtube || event.videoUrl || "");
   const galleryItems = normalizeGalleryItems(event.gallery || event.photos || event.images);
-  const stepsMarkup = createStepTreeMarkup(event.steps, event.startDate ?? event.startMs);
+  const stepsMarkup = createStepTreeMarkup(getEventSteps(event), event.startDate ?? event.startMs);
 
   drawerContentEl.innerHTML = `
     <div class="drawer-meta-badges">
@@ -1882,7 +1901,7 @@ function renderStats() {
     };
 
     pushLocation(event);
-    flattenStepTree(event.steps, { parentDate: event.startDate ?? event.startMs }).forEach((step) => pushLocation(step));
+    flattenStepTree(getEventSteps(event), { parentDate: event.startDate ?? event.startMs }).forEach((step) => pushLocation(step));
 
     return locations;
   };
@@ -2010,7 +2029,7 @@ function renderStats() {
   };
 
   const getDistanceOccurrences = (event, otherEvents = []) => {
-    const stepNodes = flattenStepTree(event.steps, {
+    const stepNodes = flattenStepTree(getEventSteps(event), {
       parentDate: event.startDate ?? event.startMs,
       parentColor: event.color,
       parentCategory: event.category,
@@ -2207,7 +2226,7 @@ function renderStats() {
     const moveEndMs = Math.max(prevHome.endMs, nextHome.startMs);
 
     const overlapsEventWithSteps = nonLivingEvents.some((event) => {
-      if (!Array.isArray(event.steps) || !event.steps.length) return false;
+      if (!getEventSteps(event).length) return false;
 
       const occurrences = getDistanceOccurrences(event, nonLivingEvents);
       return occurrences.some((occurrence) => {
@@ -2283,8 +2302,9 @@ function renderStats() {
       return true;
     }
 
-    if (Array.isArray(event.steps)) {
-      return event.steps.some((step) => step.country && String(step.country).trim().toLowerCase() !== "france");
+    const eventSteps = flattenStepTree(getEventSteps(event), { parentDate: event.startDate ?? event.startMs });
+    if (eventSteps.length) {
+      return eventSteps.some((step) => step.country && String(step.country).trim().toLowerCase() !== "france");
     }
 
     return false;
@@ -2769,7 +2789,7 @@ function getEventMapPoints(event) {
     });
   }
 
-  flattenStepTree(event.steps, {
+  flattenStepTree(getEventSteps(event), {
     parentDate: event.startDate,
     parentColor: event.color,
     parentCategory: getMapCategory(event, event.category),
@@ -2801,7 +2821,7 @@ function getEventMapPoints(event) {
 }
 
 function getEventRoutePoints(event, activeCategoriesSet = getActiveCategories()) {
-  return flattenStepTree(event.steps, {
+  return flattenStepTree(getEventSteps(event), {
     parentDate: event.startDate,
     parentColor: event.color,
     parentCategory: getMapCategory(event, event.category),
@@ -3293,9 +3313,9 @@ let networkGraphState = null;
 function getNodeTypeLabel(type) {
   return ({
     event: "Élément",
+    step: "Étape",
     category: "Catégorie",
     country: "Pays",
-    city: "Ville",
     artist: "Artiste",
     tag: "Tag"
   })[type] || "Nœud";
@@ -3328,6 +3348,58 @@ function buildNetworkGraphData(activeCategoriesSet = getActiveCategories()) {
     }
   };
 
+  const ensureCountryNode = (country) => {
+    if (!country) return null;
+    const countryNodeId = `country:${normalizeTagValue(country)}`;
+    ensureNode(countryNodeId, {
+      type: "country",
+      label: country,
+      color: "#38bdf8",
+      meta: "Pays"
+    });
+    return countryNodeId;
+  };
+
+  const getStepNodeLabel = (step) => step.title || step.city || step.country || "Étape";
+
+  const getStepNodeMeta = (step, event) => {
+    const stepDates = getStepDateMs(step, event.startDate ?? event.startMs);
+    const dateLabel = step.endDate
+      ? `${formatFullDate(stepDates.startMs)} — ${formatFullDate(stepDates.endMs)}`
+      : formatFullDate(stepDates.startMs);
+    const locationLabel = [step.city, step.country].filter(Boolean).join(", ");
+    return [event.title, locationLabel, dateLabel].filter(Boolean).join(" · ");
+  };
+
+  const linkStepTree = (steps, event, parentNodeId) => {
+    if (!Array.isArray(steps) || !steps.length) return;
+
+    steps.forEach((step, index) => {
+      if (!step || typeof step !== "object") return;
+
+      const stepNodeId = `step:${event.id}:${parentNodeId}:${index}`;
+      ensureNode(stepNodeId, {
+        type: "step",
+        label: getStepNodeLabel(step),
+        color: step.color || event.color || CATEGORY_COLORS[event.category] || "#60a5fa",
+        eventId: event.id,
+        event,
+        meta: getStepNodeMeta(step, event)
+      });
+      ensureLink(parentNodeId, stepNodeId, "step");
+
+      const countryNodeId = ensureCountryNode(step.country);
+      if (countryNodeId) {
+        ensureLink(stepNodeId, countryNodeId, "country");
+      }
+
+      const nestedSteps = Array.isArray(step.steps) ? step.steps : [];
+      if (nestedSteps.length) {
+        linkStepTree(nestedSteps, event, stepNodeId);
+      }
+    });
+  };
+
   normalized.forEach((event) => {
     const categoryLabel = CATEGORY_LABELS[event.category] || titleCase(event.category || "autre");
     const eventNodeId = `event:${event.id}`;
@@ -3349,38 +3421,13 @@ function buildNetworkGraphData(activeCategoriesSet = getActiveCategories()) {
     });
     ensureLink(eventNodeId, categoryNodeId, "category");
 
-    if (event.city) {
-      const cityNodeId = `city:${normalizeTagValue(`${event.city}|${event.country || ""}`)}`;
-      ensureNode(cityNodeId, {
-        type: "city",
-        label: event.city,
-        color: "#22c55e",
-        meta: [event.city, event.country].filter(Boolean).join(", ")
-      });
-      ensureLink(eventNodeId, cityNodeId, "city");
+    const hasSteps = Array.isArray(event.steps) && event.steps.length > 0;
 
-      if (event.country) {
-        const countryNodeId = `country:${normalizeTagValue(event.country)}`;
-        ensureNode(countryNodeId, {
-          type: "country",
-          label: event.country,
-          color: "#38bdf8",
-          meta: "Pays"
-        });
-        ensureLink(cityNodeId, countryNodeId, "country");
-      }
-    }
-
-    if (event.country) {
-      const countryNodeId = `country:${normalizeTagValue(event.country)}`;
-      ensureNode(countryNodeId, {
-        type: "country",
-        label: event.country,
-        color: "#38bdf8",
-        meta: "Pays"
-      });
-
-      if (!event.city) {
+    if (hasSteps) {
+      linkStepTree(event.steps, event, eventNodeId);
+    } else if (event.country) {
+      const countryNodeId = ensureCountryNode(event.country);
+      if (countryNodeId) {
         ensureLink(eventNodeId, countryNodeId, "country");
       }
     }
@@ -3416,9 +3463,9 @@ function buildNetworkGraphData(activeCategoriesSet = getActiveCategories()) {
 
   const radiusBase = {
     event: 7,
+    step: 8,
     category: 12,
     country: 11,
-    city: 9,
     artist: 8,
     tag: 7
   };
@@ -3436,17 +3483,6 @@ function buildNetworkGraphData(activeCategoriesSet = getActiveCategories()) {
 
   const links = Array.from(linkMap.values()).map((link) => ({ ...link }));
   return { nodes, links };
-}
-
-function getNodeTypeLabel(type) {
-  return {
-    event: "Élément",
-    category: "Catégorie",
-    country: "Pays",
-    city: "Ville",
-    artist: "Artiste",
-    tag: "Tag"
-  }[type] || "Nœud";
 }
 
 const NETWORK_DEFAULTS = {
@@ -3568,16 +3604,16 @@ function renderKnowledgeGraph(activeCategoriesSet = getActiveCategories()) {
 
   const relationDistanceBase = {
     category: 80,
+    step: 78,
     country: 82,
-    city: 92,
     artist: 104,
     tag: 76
   };
 
   const relationStrengthBase = {
     category: 1.08,
+    step: 1.02,
     country: 1.02,
-    city: 0.92,
     artist: 0.88,
     tag: 0.82
   };
@@ -3604,7 +3640,7 @@ function renderKnowledgeGraph(activeCategoriesSet = getActiveCategories()) {
       .theta(0.82)
       .distanceMax(Math.max(width, height) * 0.72)
       .strength((d) => {
-        const base = d.type === "event" ? -230 : -175;
+        const base = d.type === "event" ? -230 : d.type === "step" ? -195 : -175;
         const degreeBoost = Math.min(170, d.degree * 18);
         const peripheralBoost = d.isPeripheralCandidate ? 95 : 0;
         return -(Math.abs(base) + degreeBoost + peripheralBoost) * settings.repulsion;
@@ -3617,7 +3653,7 @@ function renderKnowledgeGraph(activeCategoriesSet = getActiveCategories()) {
       centerX,
       centerY
     ).strength((d) => d.isPeripheralCandidate ? 0.065 : 0.018))
-    .force("collide", d3.forceCollide().radius((d) => d.radius + (d.type === "event" ? 26 : 18)).iterations(2));
+    .force("collide", d3.forceCollide().radius((d) => d.radius + (d.type === "event" ? 26 : d.type === "step" ? 20 : 18)).iterations(2));
 
   const link = linkLayer
     .selectAll("line")
@@ -3633,7 +3669,7 @@ function renderKnowledgeGraph(activeCategoriesSet = getActiveCategories()) {
     .enter()
     .append("g")
     .attr("class", (d) => `network-node network-node--${d.type}`)
-    .style("cursor", (d) => d.type === "event" ? "pointer" : "grab");
+    .style("cursor", (d) => (d.type === "event" || d.type === "step") ? "pointer" : "grab");
 
   node.append("circle")
     .attr("r", (d) => d.radius)
@@ -3705,7 +3741,7 @@ function renderKnowledgeGraph(activeCategoriesSet = getActiveCategories()) {
       clearHighlight();
     })
     .on("click", function(event, d) {
-      if (d.type === "event" && d.event) {
+      if ((d.type === "event" || d.type === "step") && d.event) {
         selectEvent(d.event, { openDrawer: true, focusMap: true });
       }
       highlightNode(d);

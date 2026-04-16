@@ -1483,7 +1483,7 @@ const rawTimelineEvents = [
       city: "Singapour",
       country: "Singapour",
       latitude: 1.2843277942862887,
-      longitude: 103.85916445116489
+      longitude: 103.85916445116489,
     },
   {
       title: "Singapour",
