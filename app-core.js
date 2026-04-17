@@ -27,6 +27,12 @@ const networkLinkDistanceEl = document.getElementById("network-link-distance");
 const networkLinkDistanceValueEl = document.getElementById("network-link-distance-value");
 const networkCenterForceEl = document.getElementById("network-center-force");
 const networkCenterForceValueEl = document.getElementById("network-center-force-value");
+const NETWORK_CATEGORY_DISPLAY_STATES = ["full", "transparent", "hidden"];
+const NETWORK_CATEGORY_DISPLAY_LABELS = {
+  full: "Plein",
+  transparent: "Transparent",
+  hidden: "Masqué"
+};
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const LABEL_COL = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--label-col")) || 0;
@@ -142,6 +148,12 @@ const activeCategories = new Set(
     .filter((category) => category && category !== "system" && category !== "personal")
 );
 
+const networkCategoryDisplayStates = new Map(
+  CATEGORY_ORDER
+    .filter((category) => events.some((event) => event.category === category))
+    .map((category) => [category, "full"])
+);
+
 function getActiveCategories() {
   return new Set(activeCategories);
 }
@@ -161,6 +173,30 @@ function toggleCategoryVisibility(category) {
   }
 
   render();
+}
+
+function getNetworkCategoryDisplayState(category) {
+  if (!category || category === "system") return "full";
+  return networkCategoryDisplayStates.get(category) || "full";
+}
+
+function setNetworkCategoryDisplayState(category, nextState) {
+  if (!category || category === "system") return;
+  if (!NETWORK_CATEGORY_DISPLAY_STATES.includes(nextState)) return;
+
+  networkCategoryDisplayStates.set(category, nextState);
+  renderNetworkCategories();
+  renderKnowledgeGraph();
+}
+
+function cycleNetworkCategoryDisplayState(category) {
+  if (!category || category === "system") return;
+
+  const currentState = getNetworkCategoryDisplayState(category);
+  const currentIndex = NETWORK_CATEGORY_DISPLAY_STATES.indexOf(currentState);
+  const nextState = NETWORK_CATEGORY_DISPLAY_STATES[(currentIndex + 1) % NETWORK_CATEGORY_DISPLAY_STATES.length];
+
+  setNetworkCategoryDisplayState(category, nextState);
 }
 
 let activeTab = "timeline";
@@ -196,7 +232,7 @@ function switchTab(tabName) {
 
   if (tabName === "network") {
     requestAnimationFrame(() => {
-      renderKnowledgeGraph(getActiveCategories());
+      renderKnowledgeGraph();
     });
   }
 }

@@ -69,25 +69,26 @@ function renderNetworkCategories() {
   availableCategories.forEach((category) => {
     const label = CATEGORY_LABELS[category] || category || "";
     const markerColor = CATEGORY_COLORS[category] || "#94a3b8";
-    const isVisible = isCategoryVisible(category);
+    const displayState = getNetworkCategoryDisplayState(category);
 
     const item = document.createElement("button");
     item.type = "button";
-    item.className = `network-category-toggle ${isVisible ? "is-active" : "is-inactive"}`;
+    item.className = `network-category-toggle is-${displayState}`;
     item.dataset.category = category;
-    item.setAttribute("aria-pressed", isVisible ? "true" : "false");
-    item.setAttribute("title", isVisible ? "Masquer dans le network" : "Afficher dans le network");
+    item.dataset.displayState = displayState;
+    item.setAttribute("aria-pressed", displayState === "full" ? "true" : "false");
+    item.setAttribute("title", `Changer l'état d'affichage de ${label} (${NETWORK_CATEGORY_DISPLAY_LABELS[displayState]})`);
     item.style.setProperty("--category-accent", markerColor);
-    item.innerHTML = buildNetworkCategoryToggleMarkup(label, isVisible);
+    item.innerHTML = buildNetworkCategoryToggleMarkup(label, displayState);
 
-    const checkbox = item.querySelector('input[type="checkbox"]');
-    checkbox?.addEventListener("click", (e) => {
+    const stateButton = item.querySelector('.network-category-toggle__state-btn');
+    stateButton?.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      toggleCategoryVisibility(category);
+      cycleNetworkCategoryDisplayState(category);
     });
 
-    item.addEventListener("click", () => toggleCategoryVisibility(category));
+    item.addEventListener("click", () => cycleNetworkCategoryDisplayState(category));
     networkCategoriesEl.appendChild(item);
   });
 }

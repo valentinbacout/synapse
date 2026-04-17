@@ -148,7 +148,7 @@ function render() {
   }
 
   renderEventsMap(visibleCategories);
-  renderKnowledgeGraph(visibleCategories);
+  renderKnowledgeGraph();
   updateMapPanelUi();
 }
 
@@ -241,7 +241,7 @@ if (mapResetBtn) {
   .forEach((control) => {
     control.addEventListener("input", () => {
       updateNetworkControlLabels();
-      renderKnowledgeGraph(getActiveCategories());
+      renderKnowledgeGraph();
     });
   });
 
@@ -256,6 +256,6 @@ networkResetBtnEl?.addEventListener("click", () => {
   if (networkCenterForceEl) networkCenterForceEl.value = String(NETWORK_DEFAULTS.centerForce);
   updateNetworkControlLabels();
   networkGraphState?.destroy?.();
-  renderKnowledgeGraph(getActiveCategories());
+  renderKnowledgeGraph();
   networkGraphState?.resetPositions?.();
 });

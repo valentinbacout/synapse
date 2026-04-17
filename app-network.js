@@ -49,6 +49,42 @@ function buildEventLookupMaps(normalizedEvents = []) {
   return { byId, byTitle };
 }
 
+function mergeNodeCategoryKeys(node, categoryKeys = []) {
+  if (!node._categoryKeySet) {
+    node._categoryKeySet = new Set();
+  }
+
+  categoryKeys
+    .filter((category) => Boolean(category) && category !== "system")
+    .forEach((category) => node._categoryKeySet.add(category));
+
+  node.categoryKeys = Array.from(node._categoryKeySet);
+  return node;
+}
+
+function getDisplayStateScore(displayState) {
+  return ({ full: 2, transparent: 1, hidden: 0 })[displayState] ?? 0;
+}
+
+function resolveNetworkNodeDisplayState(node) {
+  const categoryKeys = Array.isArray(node.categoryKeys) ? node.categoryKeys : [];
+
+  if (!categoryKeys.length) {
+    return "full";
+  }
+
+  let resolvedState = "hidden";
+
+  categoryKeys.forEach((category) => {
+    const nextState = getNetworkCategoryDisplayState(category);
+    if (getDisplayStateScore(nextState) > getDisplayStateScore(resolvedState)) {
+      resolvedState = nextState;
+    }
+  });
+
+  return resolvedState;
+}
+
 function resolveLinkedEvent(linkValue, sourceEvent, lookupMaps) {
   const normalizedLinkValue = normalizeEventLinkValue(linkValue);
   if (!normalizedLinkValue) return null;
@@ -62,20 +98,29 @@ function resolveLinkedEvent(linkValue, sourceEvent, lookupMaps) {
   return titleMatches.find((candidate) => candidate.id !== sourceEvent.id) || null;
 }
 
-function buildNetworkGraphData(activeCategoriesSet = getActiveCategories()) {
+function buildNetworkGraphData() {
   const normalized = normalizeEvents(events)
-    .filter((event) => event.id !== "TODAY")
-    .filter((event) => activeCategoriesSet.has(event.category));
+    .filter((event) => event.id !== "TODAY");
   const eventLookupMaps = buildEventLookupMaps(normalized);
 
   const nodeMap = new Map();
   const linkMap = new Map();
 
-  const ensureNode = (id, payload) => {
+  const ensureNode = (id, payload = {}) => {
     if (!nodeMap.has(id)) {
       nodeMap.set(id, { id, degree: 0, ...payload });
     }
-    return nodeMap.get(id);
+
+    const node = nodeMap.get(id);
+    Object.entries(payload).forEach(([key, value]) => {
+      if (key === "categoryKeys") return;
+      if (value !== undefined) {
+        node[key] = value;
+      }
+    });
+
+    mergeNodeCategoryKeys(node, payload.categoryKeys || []);
+    return node;
   };
 
   const ensureLink = (source, target, relation) => {
@@ -126,11 +171,15 @@ function buildNetworkGraphData(activeCategoriesSet = getActiveCategories()) {
         color: step.color || event.color || CATEGORY_COLORS[event.category] || "#60a5fa",
         eventId: event.id,
         event,
-        meta: getStepNodeMeta(step, event)
+        meta: getStepNodeMeta(step, event),
+        categoryKeys: [event.category]
       });
       ensureLink(parentNodeId, stepNodeId, "step");
 
       const countryNodeId = ensureCountryNode(step.country);
+      if (countryNodeId) {
+        ensureNode(countryNodeId, { categoryKeys: [event.category] });
+      }
       if (countryNodeId) {
         ensureLink(stepNodeId, countryNodeId, "country");
       }
@@ -151,7 +200,8 @@ function buildNetworkGraphData(activeCategoriesSet = getActiveCategories()) {
       color: event.color || CATEGORY_COLORS[event.category] || "#60a5fa",
       eventId: event.id,
       event,
-      meta: [categoryLabel, formatEventDateRange(event)].filter(Boolean).join(" · ")
+      meta: [categoryLabel, formatEventDateRange(event)].filter(Boolean).join(" · "),
+      categoryKeys: [event.category]
     });
 
     const categoryNodeId = `category:${event.category}`;
@@ -159,7 +209,8 @@ function buildNetworkGraphData(activeCategoriesSet = getActiveCategories()) {
       type: "category",
       label: categoryLabel,
       color: CATEGORY_COLORS[event.category] || "#f59e0b",
-      meta: "Catégorie"
+      meta: "Catégorie",
+      categoryKeys: [event.category]
     });
     ensureLink(eventNodeId, categoryNodeId, "category");
 
@@ -170,6 +221,7 @@ function buildNetworkGraphData(activeCategoriesSet = getActiveCategories()) {
     } else if (event.country) {
       const countryNodeId = ensureCountryNode(event.country);
       if (countryNodeId) {
+        ensureNode(countryNodeId, { categoryKeys: [event.category] });
         ensureLink(eventNodeId, countryNodeId, "country");
       }
     }
@@ -181,7 +233,8 @@ function buildNetworkGraphData(activeCategoriesSet = getActiveCategories()) {
         type: "tag",
         label: titleCase(tag),
         color: "#a78bfa",
-        meta: "Tag"
+        meta: "Tag",
+        categoryKeys: [event.category]
       });
       ensureLink(eventNodeId, tagNodeId, "tag");
 
@@ -197,7 +250,8 @@ function buildNetworkGraphData(activeCategoriesSet = getActiveCategories()) {
         type: "artist",
         label: artistEntry.name,
         color: "#f472b6",
-        meta: artistEntry.rating != null ? `Note live ${formatArtistRating(artistEntry.rating)}` : "Artiste"
+        meta: artistEntry.rating != null ? `Note live ${formatArtistRating(artistEntry.rating)}` : "Artiste",
+        categoryKeys: [event.category]
       });
       ensureLink(eventNodeId, artistNodeId, "artist");
     });
@@ -207,7 +261,7 @@ function buildNetworkGraphData(activeCategoriesSet = getActiveCategories()) {
     const sourceNodeId = `event:${event.id}`;
     getEventLinkTargets(event).forEach((linkValue) => {
       const linkedEvent = resolveLinkedEvent(linkValue, event, eventLookupMaps);
-      if (!linkedEvent || !activeCategoriesSet.has(linkedEvent.category)) return;
+      if (!linkedEvent) return;
 
       const targetNodeId = `event:${linkedEvent.id}`;
       if (sourceNodeId === targetNodeId) return;
@@ -225,18 +279,42 @@ function buildNetworkGraphData(activeCategoriesSet = getActiveCategories()) {
     tag: 7
   };
 
-  const nodes = Array.from(nodeMap.values()).map((node) => {
-    const base = radiusBase[node.type] || 8;
-    const radius = Math.max(base, base + Math.min(16, Math.sqrt(Math.max(1, node.degree)) * 2.25));
-    return {
-      ...node,
-      radius,
-      isPeripheralCandidate: node.degree <= 1,
-      massFactor: 1 + Math.min(1.6, node.degree * 0.08)
-    };
+  const nodeDisplayStates = new Map();
+  Array.from(nodeMap.values()).forEach((node) => {
+    nodeDisplayStates.set(node.id, resolveNetworkNodeDisplayState(node));
   });
 
-  const links = Array.from(linkMap.values()).map((link) => ({ ...link }));
+  const nodes = Array.from(nodeMap.values())
+    .map((node) => {
+      const base = radiusBase[node.type] || 8;
+      const radius = Math.max(base, base + Math.min(16, Math.sqrt(Math.max(1, node.degree)) * 2.25));
+      return {
+        ...node,
+        displayState: nodeDisplayStates.get(node.id) || "full",
+        radius,
+        isPeripheralCandidate: node.degree <= 1,
+        massFactor: 1 + Math.min(1.6, node.degree * 0.08)
+      };
+    })
+    .filter((node) => node.displayState !== "hidden");
+
+  const visibleNodeIds = new Set(nodes.map((node) => node.id));
+
+  const links = Array.from(linkMap.values())
+    .map((link) => {
+      const sourceState = nodeDisplayStates.get(link.source) || "hidden";
+      const targetState = nodeDisplayStates.get(link.target) || "hidden";
+      const displayState = sourceState === "full" || targetState === "full"
+        ? "full"
+        : (sourceState === "transparent" && targetState === "transparent" ? "transparent" : "hidden");
+
+      return {
+        ...link,
+        displayState
+      };
+    })
+    .filter((link) => link.displayState !== "hidden" && visibleNodeIds.has(link.source) && visibleNodeIds.has(link.target));
+
   return { nodes, links };
 }
 
@@ -275,7 +353,7 @@ function updateNetworkControlLabels() {
   if (networkCenterForceValueEl) networkCenterForceValueEl.textContent = formatNetworkRelativePercent(settings.centerForce, NETWORK_DEFAULTS.centerForce);
 }
 
-function renderKnowledgeGraph(activeCategoriesSet = getActiveCategories()) {
+function renderKnowledgeGraph() {
   if (!networkGraphEl) return;
 
   networkGraphState?.destroy?.();
@@ -290,11 +368,11 @@ function renderKnowledgeGraph(activeCategoriesSet = getActiveCategories()) {
   const settings = getNetworkSettings();
   updateNetworkControlLabels();
 
-  const data = buildNetworkGraphData(activeCategoriesSet);
+  const data = buildNetworkGraphData();
   networkGraphEl.innerHTML = "";
 
   if (!data.nodes.length || !data.links.length) {
-    networkGraphEl.innerHTML = '<div class="network-panel__empty">Aucune relation disponible pour les catégories actuellement actives.</div>';
+    networkGraphEl.innerHTML = '<div class="network-panel__empty">Aucune relation disponible pour les catégories visibles dans le réseau.</div>';
     networkGraphState = null;
     return;
   }
@@ -417,7 +495,7 @@ function renderKnowledgeGraph(activeCategoriesSet = getActiveCategories()) {
     .data(data.links)
     .enter()
     .append("line")
-    .attr("class", (d) => `network-link network-link--${d.relation}`)
+    .attr("class", (d) => `network-link network-link--${d.relation} network-link--state-${d.displayState}`)
     .attr("stroke-width", (d) => d.relation === "category" ? 1.5 : 1.15);
 
   const node = nodeLayer
@@ -425,7 +503,7 @@ function renderKnowledgeGraph(activeCategoriesSet = getActiveCategories()) {
     .data(data.nodes)
     .enter()
     .append("g")
-    .attr("class", (d) => `network-node network-node--${d.type}`)
+    .attr("class", (d) => `network-node network-node--${d.type} network-node--state-${d.displayState}`)
     .style("cursor", (d) => (d.type === "event" || d.type === "step") ? "pointer" : "grab");
 
   node.append("circle")
@@ -476,22 +554,28 @@ function renderKnowledgeGraph(activeCategoriesSet = getActiveCategories()) {
   };
 
   const highlightNode = (activeNode) => {
+    if (!activeNode || activeNode.displayState !== "full") {
+      clearHighlight();
+      return;
+    }
+
     const neighbors = adjacency.get(activeNode.id) || new Set();
 
     node
-      .classed("is-highlighted", (d) => d.id === activeNode.id)
-      .classed("is-neighbor", (d) => d.id !== activeNode.id && neighbors.has(d.id))
-      .classed("is-faded", (d) => d.id !== activeNode.id && !neighbors.has(d.id));
+      .classed("is-highlighted", (d) => d.displayState === "full" && d.id === activeNode.id)
+      .classed("is-neighbor", (d) => d.displayState === "full" && d.id !== activeNode.id && neighbors.has(d.id))
+      .classed("is-faded", (d) => d.displayState === "full" && d.id !== activeNode.id && !neighbors.has(d.id));
 
     link
-      .classed("is-highlighted", (d) => d.source.id === activeNode.id || d.target.id === activeNode.id)
-      .classed("is-faded", (d) => d.source.id !== activeNode.id && d.target.id !== activeNode.id);
+      .classed("is-highlighted", (d) => d.displayState === "full" && (d.source.id === activeNode.id || d.target.id === activeNode.id))
+      .classed("is-faded", (d) => d.displayState === "full" && d.source.id !== activeNode.id && d.target.id !== activeNode.id);
 
     updateTooltip(activeNode);
   };
 
   node
     .on("mouseenter", function(event, d) {
+      if (d.displayState !== "full") return;
       highlightNode(d);
     })
     .on("mouseleave", function() {
@@ -501,6 +585,12 @@ function renderKnowledgeGraph(activeCategoriesSet = getActiveCategories()) {
       if ((d.type === "event" || d.type === "step") && d.event) {
         selectEvent(d.event, { openDrawer: true, focusMap: true });
       }
+
+      if (d.displayState !== "full") {
+        clearHighlight();
+        return;
+      }
+
       highlightNode(d);
     });
 

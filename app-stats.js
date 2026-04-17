@@ -2098,13 +2098,19 @@ function buildCategoryToggleMarkup(label, isVisible) {
     `;
 }
 
-function buildNetworkCategoryToggleMarkup(label, isVisible) {
+function buildNetworkCategoryToggleMarkup(label, displayState) {
+  const stateLabel = NETWORK_CATEGORY_DISPLAY_LABELS[displayState] || NETWORK_CATEGORY_DISPLAY_LABELS.full;
+
   return `
       <span class="network-category-toggle__content">
-        <span class="network-category-toggle__checkbox">
-          <input type="checkbox" ${isVisible ? "checked" : ""} aria-label="Afficher ou masquer ${escapeHtml(label)}" />
+        <span class="network-category-toggle__swatch" aria-hidden="true"></span>
+        <span class="network-category-toggle__text-wrap">
+          <span class="network-category-toggle__text">${escapeHtml(label)}</span>
+          <span class="network-category-toggle__state-label">${escapeHtml(stateLabel)}</span>
         </span>
-        <span class="network-category-toggle__text">${escapeHtml(label)}</span>
+        <span class="network-category-toggle__actions">
+          <button type="button" class="network-category-toggle__state-btn" aria-label="Changer l'état d'affichage de ${escapeHtml(label)}">${escapeHtml(stateLabel)}</button>
+        </span>
       </span>
     `;
 }
