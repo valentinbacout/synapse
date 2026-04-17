@@ -2532,3 +2532,233 @@ body.has-stats-modal-open {
     min-height: 420px;
   }
 }
+
+
+.app-shell {
+  display: grid;
+  gap: 18px;
+  min-height: 100vh;
+}
+
+.app-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border-radius: 24px;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(14px);
+}
+
+.app-title {
+  margin: 0 0 6px;
+  font-size: 28px;
+  line-height: 1;
+  color: #f8fafc;
+}
+
+.app-subtitle {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.tab-nav {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.tab-btn {
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(255,255,255,0.04);
+  color: #cbd5e1;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.tab-btn:hover,
+.tab-btn:focus-visible {
+  transform: translateY(-1px);
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(148, 163, 184, 0.28);
+}
+
+.tab-btn.is-active {
+  background: rgba(59, 130, 246, 0.16);
+  border-color: rgba(96, 165, 250, 0.38);
+  color: #f8fafc;
+}
+
+.tab-panel {
+  min-height: 0;
+}
+
+.single-panel-layout,
+.network-tab-layout {
+  min-height: calc(100vh - 170px);
+}
+
+.dashboard-layout--timeline {
+  grid-template-rows: minmax(72vh, 80vh);
+}
+
+.top-row--timeline-only {
+  min-height: 0;
+}
+
+.stats-panel--full {
+  min-height: calc(100vh - 190px);
+}
+
+.network-tab-layout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 18px;
+}
+
+.network-filters-panel {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(14px);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.network-filters-panel__header {
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.network-filters-panel__header h2 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  color: #f8fafc;
+}
+
+.network-filters-panel__header p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.network-filters-panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.network-category-toggle {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.network-category-toggle__content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-left: 3px solid var(--category-accent, #3b82f6);
+  background: rgba(255, 255, 255, 0.03);
+  transition: opacity 0.18s ease, transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+.network-category-toggle:hover .network-category-toggle__content,
+.network-category-toggle:focus-visible .network-category-toggle__content {
+  transform: translateX(2px);
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(148, 163, 184, 0.24);
+}
+
+.network-category-toggle:focus-visible {
+  outline: none;
+}
+
+.network-category-toggle.is-inactive .network-category-toggle__content {
+  opacity: 0.48;
+}
+
+.network-category-toggle__checkbox {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.network-category-toggle__checkbox input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--category-accent, #3b82f6);
+}
+
+.network-category-toggle__text {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f8fafc;
+  line-height: 1.2;
+}
+
+.network-panel--full {
+  min-height: calc(100vh - 190px);
+}
+
+.network-panel__viewport-shell {
+  flex: 1;
+  min-height: 520px;
+}
+
+.network-panel__viewport {
+  height: 100%;
+  min-height: 520px;
+}
+
+@media (max-width: 1100px) {
+  .network-tab-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .network-filters-panel {
+    max-height: none;
+  }
+
+  .network-filters-panel__body {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+}
+
+@media (max-width: 980px) {
+  .app-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .tab-nav {
+    justify-content: flex-start;
+  }
+}

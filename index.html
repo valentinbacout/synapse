@@ -16,221 +16,244 @@
 
 <body>
   <div class="wrap">
-    <div class="dashboard-layout">
-      <section class="top-row">
-        <div class="top-row__timeline">
-          <section class="timeline-card" aria-labelledby="timeline-card-title">
-            <div class="timeline-card__header">
-              <div>
-                <h2 id="timeline-card-title">Timeline</h2>
+    <div class="app-shell">
+      <header class="app-header">
+        <div>
+          <h1 class="app-title">Synapse</h1>
+          <p class="app-subtitle">Explore la timeline, les statistiques et le réseau via des vues dédiées.</p>
+        </div>
+        <nav class="tab-nav" aria-label="Navigation principale">
+          <button type="button" class="tab-btn is-active" data-tab-target="timeline" aria-pressed="true">Timeline</button>
+          <button type="button" class="tab-btn" data-tab-target="stats" aria-pressed="false">Stats</button>
+          <button type="button" class="tab-btn" data-tab-target="network" aria-pressed="false">Network</button>
+        </nav>
+      </header>
+
+      <section class="tab-panel is-active" data-tab-panel="timeline">
+        <div class="dashboard-layout dashboard-layout--timeline">
+          <section class="top-row top-row--timeline-only">
+            <div class="top-row__timeline">
+              <section class="timeline-card" aria-labelledby="timeline-card-title">
+                <div class="timeline-card__header">
+                  <div>
+                    <h2 id="timeline-card-title">Timeline</h2>
+                  </div>
+                  <div class="timeline-card__zoom">
+                    <label class="filters-panel__zoom-label" for="zoom">Zoom</label>
+                    <input id="zoom" type="range" min="15" max="180" value="70" />
+                  </div>
+                </div>
+
+                <div class="timeline-layout">
+                  <div class="timeline-shell">
+                    <aside class="timeline-left-panel" aria-label="Panneau latéral de la timeline">
+                      <div class="timeline-left-panel__inner">
+                        <div class="timeline-left-panel__body" id="left-panel-categories"></div>
+                      </div>
+                    </aside>
+
+                    <div class="timeline">
+                      <div class="scroller" id="scroller">
+                        <div class="stage" id="stage"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <section class="map-panel top-row__map" id="map-panel">
+              <div class="map-panel-header">
+                <div>
+                  <h2 id="map-panel-title">Carte des lieux</h2>
+                </div>
+                <div class="map-panel-actions">
+                  <label class="map-toggle" for="heatmap-toggle" id="heatmap-toggle-wrap">
+                    <input type="checkbox" id="heatmap-toggle" />
+                    <span>Heatmap</span>
+                  </label>
+
+                  <button type="button" class="map-view-toggle" id="map-view-toggle" hidden>
+                    Voir la fiche
+                  </button>
+
+                  <button id="map-reset-btn" class="map-reset-btn" type="button" hidden
+                    aria-label="Désélectionner l’événement">
+                    ✕
+                  </button>
+                </div>
               </div>
-              <div class="timeline-card__zoom">
-                <label class="filters-panel__zoom-label" for="zoom">Zoom</label>
-                <input id="zoom" type="range" min="15" max="180" value="70" />
+
+              <div class="map-panel-body" id="map-panel-body">
+                <div class="map-view is-active" id="map-view" aria-hidden="false">
+                  <div id="events-map" aria-label="Carte des événements"></div>
+                </div>
+
+                <aside class="event-drawer" id="event-drawer" aria-hidden="true">
+                  <div class="event-drawer__panel" role="dialog" aria-modal="false" aria-labelledby="event-drawer-title">
+                    <div class="event-drawer__content" id="event-drawer-content">
+                      <p class="event-drawer__empty">Sélectionne un événement dans la timeline ou sur la carte pour afficher sa fiche.</p>
+                    </div>
+                  </div>
+                </aside>
+              </div>
+            </section>
+          </section>
+        </div>
+      </section>
+
+      <section class="tab-panel" data-tab-panel="stats" hidden>
+        <div class="single-panel-layout">
+          <section class="stats-panel stats-panel--full" aria-labelledby="stats-title">
+            <div class="stats-panel-header">
+              <div>
+                <h2 id="stats-title">Statistiques</h2>
               </div>
             </div>
 
-            <div class="timeline-layout">
-              <div class="timeline-shell">
-                <aside class="timeline-left-panel" aria-label="Panneau latéral de la timeline">
-                  <div class="timeline-left-panel__inner">
-                    <div class="timeline-left-panel__body" id="left-panel-categories"></div>
-                  </div>
-                </aside>
-
-                <div class="timeline">
-                  <div class="scroller" id="scroller">
-                    <div class="stage" id="stage"></div>
-                  </div>
+            <div class="stats-hierarchy" id="stats-grid">
+              <section class="stats-section stats-section--hero" aria-labelledby="stats-hero-title">
+                <div class="stats-section__header"></div>
+                <div class="stats-group stats-group--hero">
+                  <article class="stat-card stat-card--hero" data-stat-key="countries">
+                    <div class="stat-card__main">
+                      <span class="stat-label">Pays visités</span>
+                      <strong class="stat-value" id="stat-countries">0</strong>
+                      <span class="stat-meta">Basé sur les lieux renseignés</span>
+                    </div>
+                    <div class="stat-visual stat-visual--hero" id="stat-countries-visual"></div>
+                  </article>
+                  <article class="stat-card stat-card--hero" data-stat-key="distance">
+                    <div class="stat-card__main">
+                      <span class="stat-label">Kilomètres parcourus</span>
+                      <strong class="stat-value" id="stat-distance">0 km</strong>
+                      <span class="stat-meta">Trajets cumulés</span>
+                    </div>
+                    <div class="stat-visual stat-visual--hero" id="stat-distance-visual"></div>
+                  </article>
+                  <article class="stat-card stat-card--hero" data-stat-key="topCountry">
+                    <div class="stat-card__main">
+                      <span class="stat-label">Pays le plus visité</span>
+                      <strong class="stat-value" id="stat-top-country">-</strong>
+                      <span class="stat-meta" id="stat-top-country-meta">0 événement</span>
+                    </div>
+                    <div class="stat-visual stat-visual--hero" id="stat-top-country-visual"></div>
+                  </article>
                 </div>
-              </div>
+              </section>
+
+              <section class="stats-section stats-section--medium" aria-labelledby="stats-medium-title">
+                <div class="stats-section__header"></div>
+                <div class="stats-group stats-group--medium">
+                  <article class="stat-card stat-card--medium" data-stat-key="longest">
+                    <div class="stat-card__main">
+                      <span class="stat-label">Plus long trajet</span>
+                      <strong class="stat-value" id="stat-longest">0 km</strong>
+                      <span class="stat-meta" id="stat-longest-meta">-</span>
+                    </div>
+                    <div class="stat-visual" id="stat-longest-visual"></div>
+                  </article>
+                  <article class="stat-card stat-card--medium" data-stat-key="artistsSeen">
+                    <div class="stat-card__main">
+                      <span class="stat-label">Artistes vus</span>
+                      <strong class="stat-value" id="stat-artists-seen">0</strong>
+                      <span class="stat-meta" id="stat-artists-seen-meta">Basé sur les lineups renseignés</span>
+                    </div>
+                    <div class="stat-visual" id="stat-artists-visual"></div>
+                  </article>
+                  <article class="stat-card stat-card--medium" data-stat-key="bestYear">
+                    <div class="stat-card__main">
+                      <span class="stat-label">Année la plus active</span>
+                      <strong class="stat-value" id="stat-best-year">-</strong>
+                      <span class="stat-meta" id="stat-best-year-meta">0 événement</span>
+                    </div>
+                    <div class="stat-visual" id="stat-best-year-visual"></div>
+                  </article>
+                  <article class="stat-card stat-card--medium" data-stat-key="themeParks">
+                    <div class="stat-card__main">
+                      <span class="stat-label">Parcs d'attractions</span>
+                      <strong class="stat-value" id="stat-theme-parks">0</strong>
+                      <span class="stat-meta" id="stat-theme-parks-meta">Basé sur le tag theme park</span>
+                    </div>
+                    <div class="stat-visual" id="stat-theme-parks-visual"></div>
+                  </article>
+                  <article class="stat-card stat-card--medium" data-stat-key="travels">
+                    <div class="stat-card__main">
+                      <span class="stat-label">Moyenne voyages / an</span>
+                      <strong class="stat-value" id="stat-travels">0</strong>
+                      <span class="stat-meta" id="stat-travels-meta">Basé sur les voyages hors France</span>
+                    </div>
+                    <div class="stat-visual" id="stat-travels-visual"></div>
+                  </article>
+                </div>
+              </section>
+
+              <section class="stats-section stats-section--others" aria-labelledby="stats-others-title">
+                <div class="stats-section__header"></div>
+                <div class="stats-group stats-group--others">
+                  <article class="stat-card stat-card--other" data-stat-key="livedPlaces">
+                    <div class="stat-card__main">
+                      <span class="stat-label">Endroits vécus</span>
+                      <strong class="stat-value" id="stat-lived-places">0</strong>
+                      <span class="stat-meta">Lieux de vie uniques</span>
+                    </div>
+                  </article>
+                </div>
+              </section>
             </div>
           </section>
         </div>
-
-        <section class="map-panel top-row__map" id="map-panel">
-          <div class="map-panel-header">
-            <div>
-              <h2 id="map-panel-title">Carte des lieux</h2>
-            </div>
-            <div class="map-panel-actions">
-              <label class="map-toggle" for="heatmap-toggle" id="heatmap-toggle-wrap">
-                <input type="checkbox" id="heatmap-toggle" />
-                <span>Heatmap</span>
-              </label>
-
-              <button type="button" class="map-view-toggle" id="map-view-toggle" hidden>
-                Voir la fiche
-              </button>
-
-              <button id="map-reset-btn" class="map-reset-btn" type="button" hidden
-                aria-label="Désélectionner l’événement">
-                ✕
-              </button>
-            </div>
-          </div>
-
-          <div class="map-panel-body" id="map-panel-body">
-            <div class="map-view is-active" id="map-view" aria-hidden="false">
-              <div id="events-map" aria-label="Carte des événements"></div>
-            </div>
-
-            <aside class="event-drawer" id="event-drawer" aria-hidden="true">
-              <div class="event-drawer__panel" role="dialog" aria-modal="false" aria-labelledby="event-drawer-title">
-
-                <div class="event-drawer__content" id="event-drawer-content">
-                  <p class="event-drawer__empty">Sélectionne un événement dans la timeline ou sur la carte pour afficher
-                    sa fiche.</p>
-                </div>
-              </div>
-            </aside>
-          </div>
-        </section>
       </section>
 
-      <section class="bottom-row">
-        <section class="stats-panel" aria-labelledby="stats-title">
-          <div class="stats-panel-header">
-            <div>
-              <h2 id="stats-title">Statistiques</h2>
+      <section class="tab-panel" data-tab-panel="network" hidden>
+        <div class="network-tab-layout">
+          <aside class="network-filters-panel" aria-labelledby="network-filters-title">
+            <div class="network-filters-panel__header">
+              <h2 id="network-filters-title">Filtres catégories</h2>
+              <p>Synchronisés avec la timeline.</p>
             </div>
-          </div>
+            <div class="network-filters-panel__body" id="network-categories"></div>
+          </aside>
 
-          <div class="stats-hierarchy" id="stats-grid">
-            <section class="stats-section stats-section--hero" aria-labelledby="stats-hero-title">
-              <div class="stats-section__header">
+          <section class="network-panel network-panel--full" aria-labelledby="network-title">
+            <div class="network-panel__header">
+              <div>
+                <h2 id="network-title">Vue réseau</h2>
+                <p>Exploration des liens entre événements, étapes, catégories, pays, tags et artistes.</p>
               </div>
-              <div class="stats-group stats-group--hero">
-                <article class="stat-card stat-card--hero" data-stat-key="countries">
-                  <div class="stat-card__main">
-                    <span class="stat-label">Pays visités</span>
-                    <strong class="stat-value" id="stat-countries">0</strong>
-                    <span class="stat-meta">Basé sur les lieux renseignés</span>
-                  </div>
-                  <div class="stat-visual stat-visual--hero" id="stat-countries-visual"></div>
-                </article>
-                <article class="stat-card stat-card--hero" data-stat-key="distance">
-                  <div class="stat-card__main">
-                    <span class="stat-label">Kilomètres parcourus</span>
-                    <strong class="stat-value" id="stat-distance">0 km</strong>
-                    <span class="stat-meta">Trajets cumulés</span>
-                  </div>
-                  <div class="stat-visual stat-visual--hero" id="stat-distance-visual"></div>
-                </article>
-                <article class="stat-card stat-card--hero" data-stat-key="topCountry">
-                  <div class="stat-card__main">
-                    <span class="stat-label">Pays le plus visité</span>
-                    <strong class="stat-value" id="stat-top-country">-</strong>
-                    <span class="stat-meta" id="stat-top-country-meta">0 événement</span>
-                  </div>
-                  <div class="stat-visual stat-visual--hero" id="stat-top-country-visual"></div>
-                </article>
+              <div class="network-panel__actions">
+                <button type="button" class="network-btn" id="network-fit-btn">Recentrer</button>
+                <button type="button" class="network-btn" id="network-reset-btn">Réinitialiser</button>
               </div>
-            </section>
-
-            <section class="stats-section stats-section--medium" aria-labelledby="stats-medium-title">
-              <div class="stats-section__header">
-              </div>
-              <div class="stats-group stats-group--medium">
-                <article class="stat-card stat-card--medium" data-stat-key="longest">
-                  <div class="stat-card__main">
-                    <span class="stat-label">Plus long trajet</span>
-                    <strong class="stat-value" id="stat-longest">0 km</strong>
-                    <span class="stat-meta" id="stat-longest-meta">-</span>
-                  </div>
-                  <div class="stat-visual" id="stat-longest-visual"></div>
-                </article>
-                <article class="stat-card stat-card--medium" data-stat-key="artistsSeen">
-                  <div class="stat-card__main">
-                    <span class="stat-label">Artistes vus</span>
-                    <strong class="stat-value" id="stat-artists-seen">0</strong>
-                    <span class="stat-meta" id="stat-artists-seen-meta">Basé sur les lineups renseignés</span>
-                  </div>
-                  <div class="stat-visual" id="stat-artists-visual"></div>
-                </article>
-                <article class="stat-card stat-card--medium" data-stat-key="bestYear">
-                  <div class="stat-card__main">
-                    <span class="stat-label">Année la plus active</span>
-                    <strong class="stat-value" id="stat-best-year">-</strong>
-                    <span class="stat-meta" id="stat-best-year-meta">0 événement</span>
-                  </div>
-                  <div class="stat-visual" id="stat-best-year-visual"></div>
-                </article>
-                <article class="stat-card stat-card--medium" data-stat-key="themeParks">
-                  <div class="stat-card__main">
-                    <span class="stat-label">Parcs d'attractions</span>
-                    <strong class="stat-value" id="stat-theme-parks">0</strong>
-                    <span class="stat-meta" id="stat-theme-parks-meta">Basé sur le tag theme park</span>
-                  </div>
-                  <div class="stat-visual" id="stat-theme-parks-visual"></div>
-                </article>
-                <article class="stat-card stat-card--medium" data-stat-key="travels">
-                  <div class="stat-card__main">
-                    <span class="stat-label">Moyenne voyages / an</span>
-                    <strong class="stat-value" id="stat-travels">0</strong>
-                    <span class="stat-meta" id="stat-travels-meta">Basé sur les voyages hors France</span>
-                  </div>
-                  <div class="stat-visual" id="stat-travels-visual"></div>
-                </article>
-              </div>
-            </section>
-
-            <section class="stats-section stats-section--others" aria-labelledby="stats-others-title">
-              <div class="stats-section__header">
-              </div>
-              <div class="stats-group stats-group--others">
-                <article class="stat-card stat-card--other" data-stat-key="livedPlaces">
-                  <div class="stat-card__main">
-                    <span class="stat-label">Endroits vécus</span>
-                    <strong class="stat-value" id="stat-lived-places">0</strong>
-                    <span class="stat-meta">Lieux de vie uniques</span>
-                  </div>
-                </article>
-
-              </div>
-            </section>
-          </div>
-        </section>
-
-        <section class="network-panel" aria-labelledby="network-title">
-          <div class="network-panel__header">
-            <div>
-              <h2 id="network-title">Vue réseau</h2>
-              <p>Exploration des liens entre événements, étapes, catégories, pays, tags et artistes.</p>
             </div>
-            <div class="network-panel__actions">
-              <button type="button" class="network-btn" id="network-fit-btn">Recentrer</button>
-              <button type="button" class="network-btn" id="network-reset-btn">Réinitialiser</button>
+
+            <div class="network-controls" aria-label="Réglages physiques du graphe">
+              <label class="network-control">
+                <span class="network-control__top"><span>Répulsion</span><strong id="network-repulsion-value">100%</strong></span>
+                <input id="network-repulsion" type="range" min="1.55" max="2.85" step="0.05" value="2.2" />
+              </label>
+              <label class="network-control">
+                <span class="network-control__top"><span>Force des liens</span><strong id="network-link-strength-value">100%</strong></span>
+                <input id="network-link-strength" type="range" min="0.3" max="0.6" step="0.01" value="0.45" />
+              </label>
+              <label class="network-control">
+                <span class="network-control__top"><span>Distance des liens</span><strong id="network-link-distance-value">100%</strong></span>
+                <input id="network-link-distance" type="range" min="0.7" max="1.3" step="0.02" value="1.0" />
+              </label>
+              <label class="network-control">
+                <span class="network-control__top"><span>Attraction centrale</span><strong id="network-center-force-value">100%</strong></span>
+                <input id="network-center-force" type="range" min="0.1" max="0.22" step="0.005" value="0.16" />
+              </label>
             </div>
-          </div>
 
-          <div class="network-controls" aria-label="Réglages physiques du graphe">
-            <label class="network-control">
-              <span class="network-control__top"><span>Répulsion</span><strong id="network-repulsion-value">100%</strong></span>
-              <input id="network-repulsion" type="range" min="1.55" max="2.85" step="0.05" value="2.2" />
-            </label>
-            <label class="network-control">
-              <span class="network-control__top"><span>Force des liens</span><strong id="network-link-strength-value">100%</strong></span>
-              <input id="network-link-strength" type="range" min="0.3" max="0.6" step="0.01" value="0.45" />
-            </label>
-            <label class="network-control">
-              <span class="network-control__top"><span>Distance des liens</span><strong id="network-link-distance-value">100%</strong></span>
-              <input id="network-link-distance" type="range" min="0.7" max="1.3" step="0.02" value="1.0" />
-            </label>
-            <label class="network-control">
-              <span class="network-control__top"><span>Attraction centrale</span><strong id="network-center-force-value">100%</strong></span>
-              <input id="network-center-force" type="range" min="0.1" max="0.22" step="0.005" value="0.16" />
-            </label>
-          </div>
-
-          <div class="network-panel__viewport-shell">
-            <div class="network-panel__viewport" id="network-graph" aria-label="Graphe relationnel interactif"></div>
-          </div>
-        </section>
+            <div class="network-panel__viewport-shell">
+              <div class="network-panel__viewport" id="network-graph" aria-label="Graphe relationnel interactif"></div>
+            </div>
+          </section>
+        </div>
       </section>
     </div>
   </div>
-
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>

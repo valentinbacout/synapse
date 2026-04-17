@@ -13,6 +13,9 @@ const mapResetBtn = document.getElementById("map-reset-btn");
 const heatmapToggleWrapEl = document.getElementById("heatmap-toggle-wrap");
 const leftPanelCategoriesEl = document.getElementById("left-panel-categories");
 const leftPanelInnerEl = document.querySelector(".timeline-left-panel__inner");
+const networkCategoriesEl = document.getElementById("network-categories");
+const tabButtons = Array.from(document.querySelectorAll("[data-tab-target]"));
+const tabPanels = Array.from(document.querySelectorAll("[data-tab-panel]"));
 const networkGraphEl = document.getElementById("network-graph");
 const networkFitBtnEl = document.getElementById("network-fit-btn");
 const networkResetBtnEl = document.getElementById("network-reset-btn");
@@ -158,6 +161,44 @@ function toggleCategoryVisibility(category) {
   }
 
   render();
+}
+
+let activeTab = "timeline";
+
+function isTimelineTabActive() {
+  const timelinePanel = document.querySelector('[data-tab-panel="timeline"]');
+  return Boolean(timelinePanel && !timelinePanel.hidden);
+}
+
+function switchTab(tabName) {
+  if (!tabName) return;
+  activeTab = tabName;
+
+  tabButtons.forEach((button) => {
+    const isActive = button.dataset.tabTarget === tabName;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-pressed", isActive ? "true" : "false");
+  });
+
+  tabPanels.forEach((panel) => {
+    const isActive = panel.dataset.tabPanel === tabName;
+    panel.classList.toggle("is-active", isActive);
+    panel.hidden = !isActive;
+  });
+
+  if (tabName === "timeline") {
+    requestAnimationFrame(() => {
+      render();
+      if (leafletMap) leafletMap.invalidateSize({ pan: false });
+      if (selectedEventId) updateMapSelectionHighlight();
+    });
+  }
+
+  if (tabName === "network") {
+    requestAnimationFrame(() => {
+      renderKnowledgeGraph(getActiveCategories());
+    });
+  }
 }
 
 function buildTicks(minMs, maxMs, width) {
@@ -3198,6 +3239,34 @@ function renderEventsMap(activeCategoriesSet = getActiveCategories()) {
 }
 
 
+function buildCategoryToggleMarkup(label, isVisible) {
+  return `
+      <span class="left-category-label__content">
+        <span class="left-category-label__checkbox">
+          <input type="checkbox" ${isVisible ? "checked" : ""} aria-label="Afficher ou masquer ${escapeHtml(label)}" />
+        </span>
+        <span class="left-category-label__text">${escapeHtml(label)}</span>
+      </span>
+    `;
+}
+
+function buildNetworkCategoryToggleMarkup(label, isVisible) {
+  return `
+      <span class="network-category-toggle__content">
+        <span class="network-category-toggle__checkbox">
+          <input type="checkbox" ${isVisible ? "checked" : ""} aria-label="Afficher ou masquer ${escapeHtml(label)}" />
+        </span>
+        <span class="network-category-toggle__text">${escapeHtml(label)}</span>
+      </span>
+    `;
+}
+
+function getAvailableCategories() {
+  return CATEGORY_ORDER.filter((category) =>
+    events.some((event) => event.category === category)
+  );
+}
+
 function renderLeftPanelCategories() {
   if (!leftPanelCategoriesEl) return;
 
@@ -3206,10 +3275,7 @@ function renderLeftPanelCategories() {
   );
   const lifeBandLabel = stage.querySelector(".life-band-global .life-band-label");
   const stageRect = stage.getBoundingClientRect();
-
-  const availableCategories = CATEGORY_ORDER.filter((category) =>
-    events.some((event) => event.category === category)
-  );
+  const availableCategories = getAvailableCategories();
 
   leftPanelCategoriesEl.innerHTML = "";
   leftPanelCategoriesEl.style.gap = "0px";
@@ -3249,15 +3315,7 @@ function renderLeftPanelCategories() {
     previousBottom = blockTop + blockHeight;
 
     item.style.setProperty("--category-accent", markerColor);
-
-    item.innerHTML = `
-      <span class="left-category-label__content">
-        <span class="left-category-label__checkbox">
-          <input type="checkbox" ${isVisible ? "checked" : ""} aria-label="Afficher ou masquer ${escapeHtml(label)}" />
-        </span>
-        <span class="left-category-label__text">${escapeHtml(label)}</span>
-      </span>
-    `;
+    item.innerHTML = buildCategoryToggleMarkup(label, isVisible);
 
     const checkbox = item.querySelector('input[type="checkbox"]');
     checkbox?.addEventListener("click", (e) => {
@@ -3268,6 +3326,38 @@ function renderLeftPanelCategories() {
 
     item.addEventListener("click", () => toggleCategoryVisibility(category));
     leftPanelCategoriesEl.appendChild(item);
+  });
+}
+
+function renderNetworkCategories() {
+  if (!networkCategoriesEl) return;
+
+  const availableCategories = getAvailableCategories();
+  networkCategoriesEl.innerHTML = "";
+
+  availableCategories.forEach((category) => {
+    const label = CATEGORY_LABELS[category] || category || "";
+    const markerColor = CATEGORY_COLORS[category] || "#94a3b8";
+    const isVisible = isCategoryVisible(category);
+
+    const item = document.createElement("button");
+    item.type = "button";
+    item.className = `network-category-toggle ${isVisible ? "is-active" : "is-inactive"}`;
+    item.dataset.category = category;
+    item.setAttribute("aria-pressed", isVisible ? "true" : "false");
+    item.setAttribute("title", isVisible ? "Masquer dans le network" : "Afficher dans le network");
+    item.style.setProperty("--category-accent", markerColor);
+    item.innerHTML = buildNetworkCategoryToggleMarkup(label, isVisible);
+
+    const checkbox = item.querySelector('input[type="checkbox"]');
+    checkbox?.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleCategoryVisibility(category);
+    });
+
+    item.addEventListener("click", () => toggleCategoryVisibility(category));
+    networkCategoriesEl.appendChild(item);
   });
 }
 
@@ -4018,8 +4108,11 @@ function render() {
     stage.appendChild(todayLabel);
   }
 
-  renderLeftPanelCategories();
-  setupSynchronizedVerticalScroll();
+  if (isTimelineTabActive()) {
+    renderLeftPanelCategories();
+    setupSynchronizedVerticalScroll();
+  }
+  renderNetworkCategories();
 
   if (scroller) {
     scroller.scrollLeft = previousScrollLeft;
@@ -4044,10 +4137,17 @@ heatmapToggleEl?.addEventListener("change", (event) => {
 
 window.addEventListener("resize", () => {
   render();
+  requestAnimationFrame(() => switchTab(activeTab));
 });
 
 render();
 renderStats();
+
+tabButtons.forEach((button) => {
+  button.addEventListener("click", () => switchTab(button.dataset.tabTarget));
+});
+
+switchTab("timeline");
 
 drawerCloseEl?.addEventListener("click", closeDrawer);
 mapViewToggleEl?.addEventListener("click", () => {
