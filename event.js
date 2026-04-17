@@ -47,7 +47,7 @@ const rawTimelineEvents = [
               gallery: [
         {
           src: "images/Epave.jpeg",
-          alt: "WEI",
+          alt: "Epave",
         },
       ]
     },
@@ -420,6 +420,14 @@ const rawTimelineEvents = [
       latitude: 50.32427047812173, 
       longitude: 3.5123274433600464
     },
+      {
+      title: "WEI 3e année",
+      category: "event",
+      startDate: "2021-09-01",
+      color: "#DD2517",
+      latitude: 50.236457513050865,
+      longitude: 2.106384076176955
+    },
   {
       title: "Expo LEGO Divion",
       category: "event",
@@ -577,6 +585,21 @@ const rawTimelineEvents = [
       longitude: 2.5710204858504886,
       Tags: "theme park",
       rating: 8.5
+    },
+      {
+      title: "WEI 5A",
+      category: "event",
+      startDate: "2023-09-01",
+      color: "#DD2517",
+      details: "Organisé par INS'Avengers",
+      latitude: 48.40620042399061, 
+      longitude: 5.2713294645023705,
+          gallery: [
+        {
+          src: "images/wei5A.jpeg",
+          alt: "WEI",
+        },
+      ]
     },
   {
       title: "SK'INSA",
@@ -1635,14 +1658,7 @@ const rawTimelineEvents = [
     },
 
   // ASSOCIATION
-  {
-      title: "WEI 3e année",
-      category: "association",
-      startDate: "2021-09-01",
-      color: "#DD2517",
-      latitude: 50.236457513050865,
-      longitude: 2.106384076176955
-    },
+
   {
       title: "Préparation liste INS'Avengers",
       category: "association",
@@ -1666,22 +1682,6 @@ const rawTimelineEvents = [
       endDate: "2024-02-08",
       description: "INS'Avengers",
       color: "#ffbdcb",
-    },
-
-  {
-      title: "WEI 5A",
-      category: "association",
-      startDate: "2023-09-01",
-      color: "#DD2517",
-      details: "Organisé par INS'Avengers",
-      latitude: 48.40620042399061, 
-      longitude: 5.2713294645023705,
-          gallery: [
-        {
-          src: "images/wei5A.jpeg",
-          alt: "WEI",
-        },
-      ]
     },
   {
       title: "Seigneurs des Caribous",
