@@ -363,6 +363,7 @@ const rawTimelineEvents = [
       startDate: "2025-08-28",
       color: "#ffbdcb",
       youtubeUrl: "https://www.youtube.com/watch?v=FfRxwOQFKSk",
+      link: ["Secrétaire INSA Alumni HDF"],
     },
       {
       title: "Synapse",

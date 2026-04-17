@@ -2409,6 +2409,10 @@ body.has-stats-modal-open {
   stroke: rgba(167, 139, 250, 0.22);
 }
 
+.network-link--event-link {
+  stroke: rgba(148, 163, 184, 0.24);
+}
+
 .network-node circle {
   stroke: rgba(255, 255, 255, 0.18);
   stroke-width: 1.35;

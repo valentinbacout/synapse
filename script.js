@@ -3320,10 +3320,62 @@ function getNodeTypeLabel(type) {
   })[type] || "Nœud";
 }
 
+function normalizeEventLinkValue(value) {
+  if (value == null) return "";
+  if (typeof value === "string") return value.trim();
+  return String(value).trim();
+}
+
+function getEventLinkTargets(event) {
+  const rawLinks = event?.link ?? event?.links ?? [];
+
+  if (Array.isArray(rawLinks)) {
+    return rawLinks
+      .map((value) => normalizeEventLinkValue(value))
+      .filter(Boolean);
+  }
+
+  const normalizedValue = normalizeEventLinkValue(rawLinks);
+  return normalizedValue ? [normalizedValue] : [];
+}
+
+function buildEventLookupMaps(normalizedEvents = []) {
+  const byId = new Map();
+  const byTitle = new Map();
+
+  normalizedEvents.forEach((event) => {
+    byId.set(String(event.id || "").trim(), event);
+
+    const titleKey = normalizeTagValue(event.title || "");
+    if (!titleKey) return;
+
+    if (!byTitle.has(titleKey)) {
+      byTitle.set(titleKey, []);
+    }
+    byTitle.get(titleKey).push(event);
+  });
+
+  return { byId, byTitle };
+}
+
+function resolveLinkedEvent(linkValue, sourceEvent, lookupMaps) {
+  const normalizedLinkValue = normalizeEventLinkValue(linkValue);
+  if (!normalizedLinkValue) return null;
+
+  const directMatch = lookupMaps.byId.get(normalizedLinkValue);
+  if (directMatch && directMatch.id !== sourceEvent.id) {
+    return directMatch;
+  }
+
+  const titleMatches = lookupMaps.byTitle.get(normalizeTagValue(normalizedLinkValue)) || [];
+  return titleMatches.find((candidate) => candidate.id !== sourceEvent.id) || null;
+}
+
 function buildNetworkGraphData(activeCategoriesSet = getActiveCategories()) {
   const normalized = normalizeEvents(events)
     .filter((event) => event.id !== "TODAY")
     .filter((event) => activeCategoriesSet.has(event.category));
+  const eventLookupMaps = buildEventLookupMaps(normalized);
 
   const nodeMap = new Map();
   const linkMap = new Map();
@@ -3457,6 +3509,19 @@ function buildNetworkGraphData(activeCategoriesSet = getActiveCategories()) {
         meta: artistEntry.rating != null ? `Note live ${formatArtistRating(artistEntry.rating)}` : "Artiste"
       });
       ensureLink(eventNodeId, artistNodeId, "artist");
+    });
+  });
+
+  normalized.forEach((event) => {
+    const sourceNodeId = `event:${event.id}`;
+    getEventLinkTargets(event).forEach((linkValue) => {
+      const linkedEvent = resolveLinkedEvent(linkValue, event, eventLookupMaps);
+      if (!linkedEvent || !activeCategoriesSet.has(linkedEvent.category)) return;
+
+      const targetNodeId = `event:${linkedEvent.id}`;
+      if (sourceNodeId === targetNodeId) return;
+
+      ensureLink(sourceNodeId, targetNodeId, "event-link");
     });
   });
 
@@ -3606,7 +3671,8 @@ function renderKnowledgeGraph(activeCategoriesSet = getActiveCategories()) {
     step: 78,
     country: 82,
     artist: 104,
-    tag: 76
+    tag: 76,
+    "event-link": 92
   };
 
   const relationStrengthBase = {
@@ -3614,7 +3680,8 @@ function renderKnowledgeGraph(activeCategoriesSet = getActiveCategories()) {
     step: 1.02,
     country: 1.02,
     artist: 0.88,
-    tag: 0.82
+    tag: 0.82,
+    "event-link": 0.98
   };
 
   const simulation = d3.forceSimulation(data.nodes)
