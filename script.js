@@ -170,7 +170,7 @@ function toggleCategoryVisibility(category) {
     activeCategories.add(category);
   }
 
-  render();
+  render({ preserveNetworkLayout: true });
 }
 
 function toggleCategoryNetworkVisibility(category) {
@@ -3798,6 +3798,42 @@ function renderKnowledgeGraph(visibleCategoriesSet = getActiveCategories(), hidd
     return;
   }
 
+  const applyAppearanceFromVisibleCategories = (targetVisibleCategoriesSet = getActiveCategories()) => {
+    const visibleSet = targetVisibleCategoriesSet instanceof Set
+      ? targetVisibleCategoriesSet
+      : new Set(targetVisibleCategoriesSet || []);
+
+    data.nodes.forEach((nodeDatum) => {
+      const categories = Array.isArray(nodeDatum.associatedCategories)
+        ? nodeDatum.associatedCategories
+        : [];
+      nodeDatum.muted = categories.length > 0 && categories.every((category) => !visibleSet.has(category));
+    });
+
+    data.links.forEach((linkDatum) => {
+      const sourceNode = typeof linkDatum.source === "object"
+        ? linkDatum.source
+        : data.nodes.find((nodeDatum) => nodeDatum.id === linkDatum.source);
+      const targetNode = typeof linkDatum.target === "object"
+        ? linkDatum.target
+        : data.nodes.find((nodeDatum) => nodeDatum.id === linkDatum.target);
+      linkDatum.muted = Boolean(sourceNode?.muted || targetNode?.muted);
+    });
+
+    if (networkGraphState?.nodeSelection) {
+      networkGraphState.nodeSelection
+        .attr("class", (d) => `network-node network-node--${d.type} ${d.muted ? "is-muted" : ""}`)
+        .style("cursor", (d) => d.muted ? "default" : ((d.type === "event" || d.type === "step") ? "pointer" : "grab"));
+    }
+
+    if (networkGraphState?.linkSelection) {
+      networkGraphState.linkSelection
+        .attr("class", (d) => `network-link network-link--${d.relation} ${d.muted ? "is-muted" : ""}`);
+    }
+
+    networkGraphState?.clearHighlight?.();
+  };
+
   const width = Math.max(networkGraphEl.clientWidth || 0, 320);
   const height = Math.max(networkGraphEl.clientHeight || 0, 420);
   const d3 = window.d3;
@@ -4072,15 +4108,22 @@ function renderKnowledgeGraph(visibleCategoriesSet = getActiveCategories(), hidd
     svg,
     zoom,
     simulation,
+    data,
+    linkSelection: link,
+    nodeSelection: node,
+    clearHighlight,
+    updateAppearance: applyAppearanceFromVisibleCategories,
     fitGraph,
     resetPositions,
     destroy() {
       simulation.stop();
     }
   };
+
+  applyAppearanceFromVisibleCategories(visibleCategoriesSet);
 }
 
-function render() {
+function render(options = {}) {
   const previousScrollLeft = scroller ? scroller.scrollLeft : 0;
   const previousScrollTop = scroller ? scroller.scrollTop : 0;
   const previousLeftPanelScrollTop = leftPanelInnerEl ? leftPanelInnerEl.scrollTop : 0;
@@ -4230,7 +4273,14 @@ function render() {
   }
 
   renderEventsMap(visibleCategories);
-  renderKnowledgeGraph(visibleCategories, getHiddenNetworkCategories());
+
+  const shouldPreserveNetworkLayout = Boolean(options.preserveNetworkLayout);
+  if (shouldPreserveNetworkLayout && networkGraphState?.updateAppearance && activeTab === "network") {
+    networkGraphState.updateAppearance(visibleCategories);
+  } else {
+    renderKnowledgeGraph(visibleCategories, getHiddenNetworkCategories());
+  }
+
   updateMapPanelUi();
 }
 
