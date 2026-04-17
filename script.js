@@ -667,9 +667,11 @@ function createEventEl(event, minMs, pxPerMs, placement, rowLayout, yOffset = 0)
     eventLayer.classList.add("event--muted");
   }
 
-  const isInteractive = event.id !== "TODAY";
+  const isInteractive = event.id !== "TODAY" && isVisibleCategory;
   if (isInteractive) {
     eventLayer.classList.add("event--interactive");
+  } else if (event.id !== "TODAY") {
+    eventLayer.classList.add("event--non-interactive");
   }
 
   const makeInteractive = (targetEl) => {

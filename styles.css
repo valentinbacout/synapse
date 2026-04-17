@@ -256,6 +256,13 @@ body {
   cursor: pointer;
 }
 
+.event--non-interactive .event-label,
+.event--non-interactive .event-dot,
+.event--non-interactive .event-bar {
+  pointer-events: none;
+  cursor: default;
+}
+
 .event-connector-v,
 .event-connector-h {
   position: absolute;
@@ -1261,6 +1268,8 @@ body {
 
 .event--muted .event-label {
   opacity: 0.4;
+  transform: none;
+  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.42);
 }
 
 .life-band-global.is-muted {
