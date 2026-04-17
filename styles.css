@@ -2847,3 +2847,25 @@ body.has-stats-modal-open {
 .network-category-toggle__checkbox {
   pointer-events: none;
 }
+
+
+/* ===== FIX OVERFLOW NETWORK FILTERS ===== */
+.network-filters-panel {
+  overflow-x: hidden;
+}
+
+.network-filters-panel__body {
+  padding-right: 12px;
+}
+
+/* ===== REMOVE TRANSLATE SHIFT (NO OVERFLOW) ===== */
+.left-category-label:hover .left-category-label__text,
+.left-category-label:hover .left-category-label__checkbox {
+  transform: none !important;
+}
+
+/* ===== REPLACE WITH SAFE HOVER EFFECT ===== */
+.left-category-label:hover .left-category-label__content {
+  padding-left: 16px;
+  transition: padding 0.15s ease;
+}
