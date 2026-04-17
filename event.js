@@ -365,7 +365,7 @@ const rawTimelineEvents = [
       youtubeUrl: "https://www.youtube.com/watch?v=FfRxwOQFKSk",
     },
       {
-      title: "Life Tracker",
+      title: "Synapse",
       category: "projects",
       startDate: "2026-03-22",
       color: "#2F3F56",
