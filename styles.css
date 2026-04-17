@@ -1803,6 +1803,7 @@ body.has-stats-modal-open {
   scrollbar-width: thin;
   scrollbar-color: rgba(148, 163, 184, 0.45) transparent;
   padding-bottom: 4px;
+  padding-top: 8px;
 }
 
 .stats-group::-webkit-scrollbar {
