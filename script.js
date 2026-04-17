@@ -17,6 +17,9 @@ const networkCategoriesEl = document.getElementById("network-categories");
 const tabButtons = Array.from(document.querySelectorAll("[data-tab-target]"));
 const tabPanels = Array.from(document.querySelectorAll("[data-tab-panel]"));
 const networkGraphEl = document.getElementById("network-graph");
+const networkSettingsToggleEl = document.getElementById("network-settings-toggle");
+const networkSettingsPanelEl = document.getElementById("network-settings-panel");
+const networkSettingsCloseEl = document.getElementById("network-settings-close");
 const networkFitBtnEl = document.getElementById("network-fit-btn");
 const networkResetBtnEl = document.getElementById("network-reset-btn");
 const networkRepulsionEl = document.getElementById("network-repulsion");
@@ -192,6 +195,13 @@ function isTimelineTabActive() {
   return Boolean(timelinePanel && !timelinePanel.hidden);
 }
 
+function setNetworkSettingsOpen(isOpen) {
+  if (!networkSettingsPanelEl || !networkSettingsToggleEl) return;
+  networkSettingsPanelEl.classList.toggle("is-open", Boolean(isOpen));
+  networkSettingsPanelEl.setAttribute("aria-hidden", isOpen ? "false" : "true");
+  networkSettingsToggleEl.setAttribute("aria-expanded", isOpen ? "true" : "false");
+}
+
 function switchTab(tabName) {
   if (!tabName) return;
   activeTab = tabName;
@@ -207,6 +217,10 @@ function switchTab(tabName) {
     panel.classList.toggle("is-active", isActive);
     panel.hidden = !isActive;
   });
+
+  if (tabName !== "network") {
+    setNetworkSettingsOpen(false);
+  }
 
   if (tabName === "timeline") {
     requestAnimationFrame(() => {
@@ -4392,4 +4406,24 @@ networkResetBtnEl?.addEventListener("click", () => {
   networkGraphState?.destroy?.();
   renderKnowledgeGraph(getActiveCategories(), getHiddenNetworkCategories());
   networkGraphState?.resetPositions?.();
+});
+
+
+networkSettingsToggleEl?.addEventListener("click", (event) => {
+  event.stopPropagation();
+  const nextState = !networkSettingsPanelEl?.classList.contains("is-open");
+  setNetworkSettingsOpen(nextState);
+});
+
+networkSettingsCloseEl?.addEventListener("click", () => {
+  setNetworkSettingsOpen(false);
+});
+
+document.addEventListener("click", (event) => {
+  if (!networkSettingsPanelEl || !networkSettingsToggleEl) return;
+  if (!networkSettingsPanelEl.classList.contains("is-open")) return;
+
+  const target = event.target;
+  if (networkSettingsPanelEl.contains(target) || networkSettingsToggleEl.contains(target)) return;
+  setNetworkSettingsOpen(false);
 });
