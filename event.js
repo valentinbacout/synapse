@@ -283,6 +283,16 @@ const rawTimelineEvents = [
         },
       ]
     },
+      {
+      title: "Malaysia International Machinery Fair",
+      category: "education",
+      startDate: "2024-07-11",
+      color: "#095D8F",
+      city: "Kuala Lumpur",
+      country: "Malaisie",
+      latitude: 3.178953423960039, 
+      longitude: 101.66814708363614
+    },
   {
       title: "Diplôme d'Ingénieur",
       category: "education",
