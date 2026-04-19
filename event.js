@@ -21,7 +21,8 @@ const rawTimelineEvents = [
     city: "Valenciennes",
     country: "France",
     latitude: 50.32014331908122,
-    longitude: 3.5131744182123468
+    longitude: 3.5131744182123468,
+    link: ["INSA Hauts-de-France"],
   },
   {
     title: "Vénissieux",
@@ -49,7 +50,8 @@ const rawTimelineEvents = [
         src: "images/Epave.jpeg",
         alt: "Epave",
       },
-    ]
+    ],
+    link: ["INSA Hauts-de-France"],
   },
   {
     title: "Malacca",
@@ -192,7 +194,8 @@ const rawTimelineEvents = [
     city: "Bron",
     country: "France",
     latitude: 45.73811999556272,
-    longitude: 4.925074352472816
+    longitude: 4.925074352472816,
+    link: ["INSA Hauts-de-France"],
   },
   {
     title: "PLP (Plateau Projet) - PFE",
@@ -201,6 +204,7 @@ const rawTimelineEvents = [
     endDate: "2024-02-15",
     color: "#22a6b3",
     details: "Étude de la capacité d’absorption de différentes structures lattices hybrides avec des gradients de réseaux",
+    link: ["INSA Hauts-de-France"],
   },
   {
     title: "Projet VINCI",
@@ -209,6 +213,7 @@ const rawTimelineEvents = [
     endDate: "2024-02-15",
     color: "#22a6b3",
     details: "Conception et prototypage d’un système de couplage permettant de former un train de chariots médicaux (preuve de concept).",
+    link: ["INSA Hauts-de-France"],
   },
   {
     title: "Stage Joubert Group",
@@ -281,7 +286,8 @@ const rawTimelineEvents = [
         latitude: 49.007844048455425,
         longitude: 2.550611200403899
       },
-    ]
+    ],
+    link: ["INSA Hauts-de-France"],
   },
   {
     title: "Déplacement Pro KL",
@@ -324,6 +330,7 @@ const rawTimelineEvents = [
     startDate: "2024-09-03",
     details: "Spécialité ME (Mécanique Énergétique), Axe CIM (Conception Intégrée en Mécanique), Parcours VINCI (Visualisation et Ingénierie Numérique pour la Conception et l'Innovation)",
     color: "#DD2517",
+    link: ["INSA Hauts-de-France"],
   },
   {
     title: "Ingénieur Conception Mécanique",
@@ -352,6 +359,7 @@ const rawTimelineEvents = [
     category: "education",
     startDate: "2025-03-22",
     color: "#DD2517",
+    link: ["INSA Hauts-de-France"],
   },
   {
     title: "Première Cryolipolyse",
@@ -455,7 +463,8 @@ const rawTimelineEvents = [
     city: "Valenciennes",
     country: "France",
     latitude: 50.32427047812173,
-    longitude: 3.5123274433600464
+    longitude: 3.5123274433600464,
+    link: ["INSA Hauts-de-France"],
   },
   {
     title: "WEI 3e année",
@@ -464,7 +473,8 @@ const rawTimelineEvents = [
     startDate: "2021-09-01",
     color: "#DD2517",
     latitude: 50.236457513050865,
-    longitude: 2.106384076176955
+    longitude: 2.106384076176955,
+    link: ["INSA Hauts-de-France"],
   },
   {
     title: "Expo LEGO Divion",
@@ -554,7 +564,8 @@ const rawTimelineEvents = [
     country: "France",
     latitude: 48.70864495649992,
     longitude: 2.1592213406099368,
-    youtubeUrl: "https://youtu.be/-bzoR3Ta0uU?si=9kBjnCR8j9rvlv-X"
+    youtubeUrl: "https://youtu.be/-bzoR3Ta0uU?si=9kBjnCR8j9rvlv-X",
+    link: ["INSA Hauts-de-France"],
   },
   {
     title: "Great Day 2",
@@ -567,7 +578,8 @@ const rawTimelineEvents = [
     country: "France",
     latitude: 50.32368705011155,
     longitude: 3.5135789925017678,
-    youtubeUrl: "https://youtu.be/UM52jmoDyJU?si=nFqd1WcQpxD_u3qo"
+    youtubeUrl: "https://youtu.be/UM52jmoDyJU?si=nFqd1WcQpxD_u3qo",
+    link: ["INSA Hauts-de-France"],
   },
   {
     title: "Main Square Festival",
@@ -645,7 +657,8 @@ const rawTimelineEvents = [
         src: "images/wei5A.jpeg",
         alt: "WEI",
       },
-    ]
+    ],
+    link: ["INSA Hauts-de-France"],
   },
   {
     title: "SK'INSA",
@@ -657,6 +670,7 @@ const rawTimelineEvents = [
     latitude: 45.26643232862341,
     longitude: 6.296191748201377,
     youtubeUrl: "https://youtu.be/X0-CEotx8hI?si=LxHvK-py3JDXelKL",
+    link: ["INSA Hauts-de-France"],
   },
   {
     title: "Soirée de Passation",
@@ -664,6 +678,7 @@ const rawTimelineEvents = [
     subcategory: "Soirées",
     startDate: "2024-02-02",
     color: "#ffbdcb",
+    link: ["INSA Hauts-de-France"],
   },
   {
     title: "Match VAFC VS Laval",
@@ -673,7 +688,8 @@ const rawTimelineEvents = [
     city: "Valenciennes",
     country: "France",
     latitude: 50.34833257016073,
-    longitude: 3.5316007640728335
+    longitude: 3.5316007640728335,
+    link: ["INSA Hauts-de-France"],
   },
   {
     title: "Soirée des Pleurs",
@@ -681,6 +697,7 @@ const rawTimelineEvents = [
     subcategory: "Soirées",
     startDate: "2024-02-22",
     color: "#ffbdcb",
+    link: ["INSA Hauts-de-France"],
   },
   {
     title: "Universal Studios",
@@ -744,7 +761,8 @@ const rawTimelineEvents = [
     city: "Anzin",
     country: "France",
     latitude: 50.375292964496396,
-    longitude: 3.5219095190037613
+    longitude: 3.5219095190037613,
+    link: ["INSA Hauts-de-France"],
   },
   {
     title: "Soirée Yacht Monaco",
@@ -808,7 +826,7 @@ const rawTimelineEvents = [
     city: "Anzin",
     country: "France",
     latitude: 50.375292964496396,
-    longitude: 3.5219095190037613
+    longitude: 3.5219095190037613,
   },
   {
     title: "Concert Damso",
@@ -1490,7 +1508,8 @@ const rawTimelineEvents = [
     city: "Amsterdam",
     country: "Pays-Bas",
     latitude: 52.3676,
-    longitude: 4.9041
+    longitude: 4.9041,
+    link: ["INSA Hauts-de-France"],
   },
   {
     title: "Paris",
@@ -1511,7 +1530,8 @@ const rawTimelineEvents = [
     city: "London",
     country: "Angleterre",
     latitude: 51.5072,
-    longitude: -0.1276
+    longitude: -0.1276,
+    link: ["INSA Hauts-de-France"],
   },
   {
     title: "Kuala Lumpur",
@@ -1737,6 +1757,7 @@ const rawTimelineEvents = [
     endDate: "2024-02-08",
     description: "INS'Avengers",
     color: "#ffbdcb",
+    link: ["INSA Hauts-de-France"],
   },
   {
     title: "Seigneurs des Caribous",
