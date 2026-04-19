@@ -111,6 +111,53 @@ function formatShort(ms) {
     .replace(".", "");
 }
 
+function normalizeSubcategory(value) {
+  const text = String(value ?? "").trim();
+  return text || null;
+}
+
+function getEventSubcategory(event) {
+  return normalizeSubcategory(
+    event?.subcategory
+    ?? event?.subCategory
+    ?? event?.timelineSubcategory
+    ?? event?.timelineRow
+  );
+}
+
+function buildTimelineRowKey(category, subcategory = null) {
+  const normalizedSubcategory = normalizeSubcategory(subcategory);
+  return normalizedSubcategory
+    ? `${category}::${normalizedSubcategory}`
+    : `${category}::__default__`;
+}
+
+function getTimelineRowsForCategory(category, normalizedEvents = normalizeEvents(events)) {
+  const rows = [];
+  const seenRowKeys = new Set();
+
+  normalizedEvents.forEach((event) => {
+    if (event.category !== category) return;
+    if (category === "living_place") return;
+
+    const rowKey = buildTimelineRowKey(category, getEventSubcategory(event));
+    if (seenRowKeys.has(rowKey)) return;
+
+    seenRowKeys.add(rowKey);
+    rows.push({
+      key: rowKey,
+      category,
+      subcategory: getEventSubcategory(event)
+    });
+  });
+
+  return rows.sort((a, b) => {
+    if (!a.subcategory && b.subcategory) return -1;
+    if (a.subcategory && !b.subcategory) return 1;
+    return String(a.subcategory || "").localeCompare(String(b.subcategory || ""), "fr", { sensitivity: "base" });
+  });
+}
+
 function normalizeEvents(inputEvents) {
   return inputEvents.map((event) => {
     const normalized = { ...event };
@@ -118,6 +165,8 @@ function normalizeEvents(inputEvents) {
     normalized.description = normalized.description ?? normalized.desc ?? "";
     normalized.details = normalized.details ?? normalized.detail ?? normalized.longDescription ?? "";
     normalized.category = normalized.category || normalized.type || "personal";
+    normalized.subcategory = getEventSubcategory(normalized);
+    normalized.timelineRowKey = buildTimelineRowKey(normalized.category, normalized.subcategory);
 
     const usesNewSchema = normalized.startDate !== undefined || normalized.endDate !== undefined;
     const startValue = usesNewSchema
@@ -3537,9 +3586,15 @@ function getAvailableCategories() {
 function renderLeftPanelCategories() {
   if (!leftPanelCategoriesEl) return;
 
-  const rowsByCategory = new Map(
-    Array.from(stage.querySelectorAll(".category-row")).map((row) => [row.dataset.category, row])
-  );
+  const rowsByCategory = new Map();
+  Array.from(stage.querySelectorAll(".category-row")).forEach((row) => {
+    const category = row.dataset.category;
+    if (!category) return;
+    const existingRows = rowsByCategory.get(category) || [];
+    existingRows.push(row);
+    rowsByCategory.set(category, existingRows);
+  });
+
   const lifeBandLabel = stage.querySelector(".life-band-global .life-band-label");
   const stageRect = stage.getBoundingClientRect();
   const availableCategories = getAvailableCategories();
@@ -3550,7 +3605,7 @@ function renderLeftPanelCategories() {
   let previousBottom = 0;
 
   availableCategories.forEach((category) => {
-    const row = rowsByCategory.get(category);
+    const rows = rowsByCategory.get(category) || [];
     const label = CATEGORY_LABELS[category] || category || "";
     const markerColor = CATEGORY_COLORS[category] || "#94a3b8";
     const isVisible = isCategoryVisible(category);
@@ -3569,10 +3624,12 @@ function renderLeftPanelCategories() {
       const labelRect = lifeBandLabel.getBoundingClientRect();
       blockTop = Math.max(0, labelRect.top - stageRect.top);
       blockHeight = Math.max(24, labelRect.height);
-    } else if (row) {
-      const rowRect = row.getBoundingClientRect();
-      blockTop = Math.max(0, rowRect.top - stageRect.top);
-      blockHeight = rowRect.height;
+    } else if (rows.length) {
+      const rowRects = rows.map((row) => row.getBoundingClientRect());
+      const firstTop = Math.min(...rowRects.map((rect) => rect.top));
+      const lastBottom = Math.max(...rowRects.map((rect) => rect.bottom));
+      blockTop = Math.max(0, firstTop - stageRect.top);
+      blockHeight = Math.max(24, lastBottom - firstTop);
     }
 
     const marginTop = Math.max(0, blockTop - previousBottom);
@@ -4410,68 +4467,81 @@ function render(options = {}) {
 
   CATEGORY_ORDER.forEach((category) => {
     if (category === "living_place") return;
-    const row = document.createElement("div");
-    row.className = "category-row";
-    row.dataset.category = category;
 
-    const track = document.createElement("div");
-    track.className = "row-track";
+    const timelineRows = getTimelineRowsForCategory(category, contentEvents);
 
-    const categoryEvents = contentEvents
-      .filter((event) => event.category === category && category !== "living_place")
-      .sort((a, b) => a.startMs - b.startMs || a.endMs - b.endMs);
+    timelineRows.forEach((timelineRow) => {
+      const row = document.createElement("div");
+      row.className = "category-row";
+      row.dataset.category = category;
+      row.dataset.rowKey = timelineRow.key;
+      if (timelineRow.subcategory) {
+        row.dataset.subcategory = timelineRow.subcategory;
+      }
 
-    categoryEvents.minMs = minMs;
+      const track = document.createElement("div");
+      track.className = "row-track";
 
-    const { laneOf: initialLaneOf } = assignLanes(categoryEvents);
-    const initialPlacementData = computeLabelPlacements(categoryEvents, pxPerMs, timelineWidth, initialLaneOf);
-    const laneOf = adjustPointLanesInsideRanges(categoryEvents, initialLaneOf, initialPlacementData.placements);
-    const placementData = computeLabelPlacements(categoryEvents, pxPerMs, timelineWidth, laneOf);
-    const rowLayout = buildRowLayout(placementData.topLevelHeights, placementData.bottomLevelHeights);
-    const rowExtents = computeRowExtents(
-      categoryEvents,
-      placementData.placements,
-      rowLayout,
-      laneOf
-    );
+      const categoryEvents = contentEvents
+        .filter((event) => event.timelineRowKey === timelineRow.key)
+        .sort((a, b) => a.startMs - b.startMs || a.endMs - b.endMs);
 
-    row.style.height = `${rowLayout.height}px`;
+      if (!categoryEvents.length) {
+        return;
+      }
 
-    const dynamicMarginTop = isFirstVisibleTimelineRow
-      ? Math.max(FIRST_ROW_TOP_GAP, rowExtents.topOverflow + INTER_ROW_GAP)
-      : Math.max(
-        INTER_ROW_GAP,
-        previousRowBottomOverflow + rowExtents.topOverflow + INTER_ROW_GAP
+      categoryEvents.minMs = minMs;
+
+      const { laneOf: initialLaneOf } = assignLanes(categoryEvents);
+      const initialPlacementData = computeLabelPlacements(categoryEvents, pxPerMs, timelineWidth, initialLaneOf);
+      const laneOf = adjustPointLanesInsideRanges(categoryEvents, initialLaneOf, initialPlacementData.placements);
+      const placementData = computeLabelPlacements(categoryEvents, pxPerMs, timelineWidth, laneOf);
+      const rowLayout = buildRowLayout(placementData.topLevelHeights, placementData.bottomLevelHeights);
+      const rowExtents = computeRowExtents(
+        categoryEvents,
+        placementData.placements,
+        rowLayout,
+        laneOf
       );
 
-    row.style.marginTop = `${dynamicMarginTop}px`;
-    isFirstVisibleTimelineRow = false;
+      row.style.height = `${rowLayout.height}px`;
 
-    const axis = document.createElement("div");
-    axis.className = "row-axis";
-    axis.style.top = `${rowLayout.axisY}px`;
-    axis.style.transform = "translateY(-50%)";
-    track.appendChild(axis);
+      const dynamicMarginTop = isFirstVisibleTimelineRow
+        ? Math.max(FIRST_ROW_TOP_GAP, rowExtents.topOverflow + INTER_ROW_GAP)
+        : Math.max(
+          INTER_ROW_GAP,
+          previousRowBottomOverflow + rowExtents.topOverflow + INTER_ROW_GAP
+        );
 
-    categoryEvents.forEach((event) => {
-      const lane = laneOf.get(event.id) ?? 0;
-      const yOffset = laneOffset(lane);
-      track.appendChild(
-        createEventEl(
-          event,
-          minMs,
-          pxPerMs,
-          placementData.placements.get(event.id),
-          rowLayout,
-          yOffset
-        )
-      );
+      row.style.marginTop = `${dynamicMarginTop}px`;
+      isFirstVisibleTimelineRow = false;
+
+      const axis = document.createElement("div");
+      axis.className = "row-axis";
+      axis.style.top = `${rowLayout.axisY}px`;
+      axis.style.transform = "translateY(-50%)";
+      track.appendChild(axis);
+
+      categoryEvents.forEach((event) => {
+        const lane = laneOf.get(event.id) ?? 0;
+        const yOffset = laneOffset(lane);
+        track.appendChild(
+          createEventEl(
+            event,
+            minMs,
+            pxPerMs,
+            placementData.placements.get(event.id),
+            rowLayout,
+            yOffset
+          )
+        );
+      });
+
+      row.appendChild(track);
+      stage.appendChild(row);
+
+      previousRowBottomOverflow = rowExtents.bottomOverflow;
     });
-
-    row.appendChild(track);
-    stage.appendChild(row);
-
-    previousRowBottomOverflow = rowExtents.bottomOverflow;
   });
 
   if (todayEvent) {

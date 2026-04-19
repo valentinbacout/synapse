@@ -417,6 +417,7 @@ const rawTimelineEvents = [
   {
     title: "Puy du Fou",
     category: "event",
+    subcategory: "Parcs d'attractions",
     startDate: "2016-07-08",
     color: "#CA2128",
     city: "Les Epesses",
@@ -459,6 +460,7 @@ const rawTimelineEvents = [
   {
     title: "WEI 3e année",
     category: "event",
+    subcategory: "Soirées",
     startDate: "2021-09-01",
     color: "#DD2517",
     latitude: 50.236457513050865,
@@ -487,6 +489,7 @@ const rawTimelineEvents = [
   {
     title: "Walibi",
     category: "event",
+    subcategory: "Parcs d'attractions",
     startDate: "2022-04-14",
     color: "#A90923",
     city: "Wavre",
@@ -509,6 +512,7 @@ const rawTimelineEvents = [
   {
     title: "Festival Nuits Secrètes",
     category: "event",
+    subcategory: "Concerts",
     startDate: "2022-07-22",
     endDate: "2022-07-24",
     color: "#FF6A6E",
@@ -526,6 +530,7 @@ const rawTimelineEvents = [
   {
     title: "Festival Scène-sur-Sambre",
     category: "event",
+    subcategory: "Concerts",
     startDate: "2022-08-26",
     color: "#FF6A6E",
     lineup: [
@@ -554,6 +559,7 @@ const rawTimelineEvents = [
   {
     title: "Great Day 2",
     category: "event",
+    subcategory: "Soirées",
     startDate: "2023-06-08",
     description: "",
     color: "#ffbdcb",
@@ -566,6 +572,7 @@ const rawTimelineEvents = [
   {
     title: "Main Square Festival",
     category: "event",
+    subcategory: "Concerts",
     startDate: "2023-06-30",
     color: "#FF6A6E",
     lineup: [
@@ -581,6 +588,7 @@ const rawTimelineEvents = [
   {
     title: "Festival Nuits Secrètes",
     category: "event",
+    subcategory: "Concerts",
     startDate: "2023-07-23",
     color: "#FF6A6E",
     lineup: [
@@ -613,6 +621,7 @@ const rawTimelineEvents = [
   {
     title: "Parc Astérix",
     category: "event",
+    subcategory: "Parcs d'attractions",
     startDate: "2023-08-09",
     color: "#5F9A3C",
     city: "Plailly",
@@ -625,6 +634,7 @@ const rawTimelineEvents = [
   {
     title: "WEI 5A",
     category: "event",
+    subcategory: "Soirées",
     startDate: "2023-09-01",
     color: "#DD2517",
     details: "Organisé par INS'Avengers",
@@ -651,6 +661,7 @@ const rawTimelineEvents = [
   {
     title: "Soirée de Passation",
     category: "event",
+    subcategory: "Soirées",
     startDate: "2024-02-02",
     color: "#ffbdcb",
   },
@@ -667,12 +678,14 @@ const rawTimelineEvents = [
   {
     title: "Soirée des Pleurs",
     category: "event",
+    subcategory: "Soirées",
     startDate: "2024-02-22",
     color: "#ffbdcb",
   },
   {
     title: "Universal Studios",
     category: "event",
+    subcategory: "Parcs d'attractions",
     startDate: "2024-06-16",
     color: "#CF9E35",
     city: "Singapour",
@@ -702,6 +715,7 @@ const rawTimelineEvents = [
   },
   {
     title: "Festival Lys Festival",
+    subcategory: "Concerts",
     category: "event",
     startDate: "2024-09-06",
     color: "#FF6A6E",
@@ -724,6 +738,7 @@ const rawTimelineEvents = [
   {
     title: "Gala INSA HDF",
     category: "event",
+    subcategory: "Soirées",
     startDate: "2025-03-22",
     color: "#DD2517",
     city: "Anzin",
@@ -734,6 +749,7 @@ const rawTimelineEvents = [
   {
     title: "Soirée Yacht Monaco",
     category: "event",
+    subcategory: "Soirées",
     startDate: "2025-03-29",
     description: "15 ans de DELEO",
     color: "#01B0DC",
@@ -775,6 +791,7 @@ const rawTimelineEvents = [
   {
     title: "AMWC - Soirée Monaco",
     category: "event",
+    subcategory: "Soirées",
     startDate: "2026-03-26",
     color: "#01B0DC",
     city: "Monaco",
@@ -785,6 +802,7 @@ const rawTimelineEvents = [
   {
     title: "Gala INSA HDF",
     category: "event",
+    subcategory: "Soirées",
     startDate: "2026-03-28",
     color: "#ffbdcb",
     city: "Anzin",
@@ -795,6 +813,7 @@ const rawTimelineEvents = [
   {
     title: "Concert Damso",
     category: "event",
+    subcategory: "Concerts",
     startDate: "2026-04-25",
     color: "#6E787A",
     lineup: ["Damso"],
