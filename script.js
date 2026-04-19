@@ -913,27 +913,27 @@ function createStepTreeMarkup(steps, fallbackDate, depth = 0) {
   return `
     <ul class="event-steps-list${depth > 0 ? " event-steps-list--nested" : ""}">
       ${steps.map((step) => {
-        if (!step || typeof step !== "object") return "";
+    if (!step || typeof step !== "object") return "";
 
-        const dates = getStepDateMs(step, fallbackDate);
-        const title = step.title || step.city || "Étape";
-        const location = [step.city, step.country].filter(Boolean).join(", ");
-        const childrenMarkup = createStepTreeMarkup(
-          getNestedStepCollections(step),
-          step.date ?? step.startDate ?? fallbackDate,
-          depth + 1
-        );
+    const dates = getStepDateMs(step, fallbackDate);
+    const title = step.title || step.city || "Étape";
+    const location = [step.city, step.country].filter(Boolean).join(", ");
+    const childrenMarkup = createStepTreeMarkup(
+      getNestedStepCollections(step),
+      step.date ?? step.startDate ?? fallbackDate,
+      depth + 1
+    );
 
-        return `
+    return `
           <li class="event-steps-list__item">
             <div class="event-steps-list__card">
               <div class="event-steps-list__header">
                 <span class="event-steps-list__title">${escapeHtml(title)}</span>
                 <span class="event-steps-list__date">${escapeHtml(
-                  step.endDate
-                    ? `${formatFullDate(dates.startMs)} — ${formatFullDate(dates.endMs)}`
-                    : formatFullDate(dates.startMs)
-                )}</span>
+      step.endDate
+        ? `${formatFullDate(dates.startMs)} — ${formatFullDate(dates.endMs)}`
+        : formatFullDate(dates.startMs)
+    )}</span>
               </div>
               ${location ? `<div class="event-steps-list__meta">📍 ${escapeHtml(location)}</div>` : ""}
               ${step.description ? `<div class="event-steps-list__meta">${escapeHtml(step.description)}</div>` : ""}
@@ -941,7 +941,7 @@ function createStepTreeMarkup(steps, fallbackDate, depth = 0) {
             </div>
           </li>
         `;
-      }).join("")}
+  }).join("")}
     </ul>
   `;
 }
@@ -1332,8 +1332,8 @@ function createThemeParksPodiumMarkup(entries = []) {
       </div>
       <div class="artists-podium">
         ${podiumOrder.map((entryIndex, visualIndex) => {
-          const entry = top3[entryIndex];
-          return `
+    const entry = top3[entryIndex];
+    return `
             <article class="artists-podium__item ${heightClasses[visualIndex]} ${placeClasses[visualIndex]}">
               <div class="artists-podium__card">
                 <div class="artists-podium__place">#${entry.rank}</div>
@@ -1344,7 +1344,7 @@ function createThemeParksPodiumMarkup(entries = []) {
               <div class="artists-podium__base"></div>
             </article>
           `;
-        }).join("")}
+  }).join("")}
       </div>
     </section>
   `;
@@ -1741,10 +1741,10 @@ function createArtistsPodiumMarkup(entries = []) {
       </div>
       <div class="artists-podium">
         ${podiumOrder.map((entryIndex, visualIndex) => {
-          const entry = top3[entryIndex];
-          const eventLabel = [entry.eventTitle, entry.eventYear].filter(Boolean).join(" — ");
+    const entry = top3[entryIndex];
+    const eventLabel = [entry.eventTitle, entry.eventYear].filter(Boolean).join(" — ");
 
-          return `
+    return `
             <article class="artists-podium__item ${heightClasses[visualIndex]} ${placeClasses[visualIndex]}">
               <div class="artists-podium__card">
                 <div class="artists-podium__name">${escapeHtml(entry.name)}</div>
@@ -1754,15 +1754,15 @@ function createArtistsPodiumMarkup(entries = []) {
               <div class="artists-podium__base"></div>
             </article>
           `;
-        }).join("")}
+  }).join("")}
       </div>
       ${rest.length ? `
         <div class="artists-top10-rest">
           <div class="artists-ranking-list">
             ${rest.map((entry, index) => {
-              const eventLabel = [entry.eventTitle, entry.eventYear].filter(Boolean).join(" — ");
+    const eventLabel = [entry.eventTitle, entry.eventYear].filter(Boolean).join(" — ");
 
-              return `
+    return `
                 <article class="artists-ranking-item">
                   <div class="artists-ranking-item__rank">#${index + 4}</div>
                   <div class="artists-ranking-item__main">
@@ -1772,7 +1772,7 @@ function createArtistsPodiumMarkup(entries = []) {
                   <div class="artists-ranking-item__score">${escapeHtml(formatArtistRating(entry.rating))}</div>
                 </article>
               `;
-            }).join("")}
+  }).join("")}
           </div>
         </div>
       ` : ""}
@@ -1904,10 +1904,10 @@ function createMiniBarsMarkup(entries = [], options = {}) {
   return `
     <div class="mini-bars">
       ${entries.map((entry) => {
-        const ratio = Math.max(6, Math.round(((Number(entry.value) || 0) / maxValue) * 100));
-        const prefix = labelPrefix(entry);
-        const prefixHtml = labelPrefixHtml(entry);
-        return `
+    const ratio = Math.max(6, Math.round(((Number(entry.value) || 0) / maxValue) * 100));
+    const prefix = labelPrefix(entry);
+    const prefixHtml = labelPrefixHtml(entry);
+    return `
           <div class="mini-bar-row">
             <div class="mini-bar-row__top">
               <span class="mini-bar-row__label">${prefixHtml || (prefix ? `<span class="mini-bar-row__prefix" aria-hidden="true">${escapeHtml(prefix)}</span>` : "")}<span>${escapeHtml(entry.label || "-")}</span></span>
@@ -1917,7 +1917,7 @@ function createMiniBarsMarkup(entries = [], options = {}) {
             ${entry.meta ? `<div class="mini-bar-row__meta">${escapeHtml(entry.meta)}</div>` : ""}
           </div>
         `;
-      }).join("")}
+  }).join("")}
     </div>
   `;
 }
@@ -2661,14 +2661,14 @@ function renderStats() {
   }));
   setVisualMarkup("stat-top-country-visual", topCountry
     ? `${createMiniBarsMarkup(topCountriesBars, {
-        valueFormatter: (value) => `${value}`,
-        labelPrefixHtml: (entry) => entry.flagMarkup || ""
-      })}<div class="stat-hero-caption">${escapeHtml(topCountryShare)}</div>`
+      valueFormatter: (value) => `${value}`,
+      labelPrefixHtml: (entry) => entry.flagMarkup || ""
+    })}<div class="stat-hero-caption">${escapeHtml(topCountryShare)}</div>`
     : '<p class="stat-visual-empty">Aucune donnée hors France.</p>');
   setVisualMarkup("stat-travels-visual", travelYearsBars.length
     ? createMiniBarsMarkup(travelYearsBars, {
-        valueFormatter: (value) => `${value}`
-      })
+      valueFormatter: (value) => `${value}`
+    })
     : '<p class="stat-visual-empty">Aucun voyage détecté.</p>');
   setVisualMarkup("stat-best-year-visual", createMiniBarsMarkup(bestYearsBars, {
     valueFormatter: (value) => `${value}`
@@ -3927,10 +3927,10 @@ function renderKnowledgeGraph(visibleCategoriesSet = getActiveCategories(), hidd
   };
 
   const simulation = d3.forceSimulation(data.nodes)
-  .alpha(1)
-  .alphaDecay(0.08)
-  .alphaMin(0.02)
-  .velocityDecay(0.5)
+    .alpha(1)
+    .alphaDecay(0.08)
+    .alphaMin(0.02)
+    .velocityDecay(0.5)
     .alpha(0.9)
     .alphaDecay(0.035)
     .velocityDecay(0.28)
@@ -4043,17 +4043,17 @@ function renderKnowledgeGraph(visibleCategoriesSet = getActiveCategories(), hidd
   };
 
   node
-    .on("mouseenter", function(event, d) {
+    .on("mouseenter", function (event, d) {
       if (d.muted) {
         clearHighlight();
         return;
       }
       highlightNode(d);
     })
-    .on("mouseleave", function() {
+    .on("mouseleave", function () {
       clearHighlight();
     })
-    .on("click", function(event, d) {
+    .on("click", function (event, d) {
       if (d.muted) return;
       if ((d.type === "event" || d.type === "step") && d.event) {
         selectEvent(d.event, { openDrawer: true, focusMap: true });
@@ -4082,7 +4082,7 @@ function renderKnowledgeGraph(visibleCategoriesSet = getActiveCategories(), hidd
 
   simulation.on("tick", ticked);
 
-  const fitGraph = (animate = true) => {
+  const fitGraph = (animate = true, scaleMultiplier = 1) => {
     const xs = data.nodes.map((d) => d.x).filter(Number.isFinite);
     const ys = data.nodes.map((d) => d.y).filter(Number.isFinite);
     if (!xs.length || !ys.length) return;
@@ -4094,7 +4094,8 @@ function renderKnowledgeGraph(visibleCategoriesSet = getActiveCategories(), hidd
     const graphWidth = Math.max(1, maxX - minX);
     const graphHeight = Math.max(1, maxY - minY);
     const padding = 84;
-    const scale = Math.max(0.28, Math.min(1.7, 0.92 / Math.max(graphWidth / Math.max(1, width - padding), graphHeight / Math.max(1, height - padding))));
+    const fittedScale = 0.92 / Math.max(graphWidth / Math.max(1, width - padding), graphHeight / Math.max(1, height - padding));
+    const scale = Math.max(0.28, Math.min(1.7, fittedScale * scaleMultiplier));
     const translateX = width / 2 - ((minX + maxX) / 2) * scale;
     const translateY = height / 2 - ((minY + maxY) / 2) * scale;
     const transform = d3.zoomIdentity.translate(translateX, translateY).scale(scale);
@@ -4117,8 +4118,11 @@ function renderKnowledgeGraph(visibleCategoriesSet = getActiveCategories(), hidd
     setTimeout(() => fitGraph(true), 220);
   };
 
-  simulation.on("end", () => fitGraph(true));
-  setTimeout(() => fitGraph(false), 260);
+  // Pas de recentrage automatique à la fin du chargement du graphe.
+  // Le centrage reste uniquement disponible via les actions explicites
+  // de l'utilisateur (bouton Recentrer ou Réinitialiser).
+
+  fitGraph(false, 0.35);
 
   networkGraphState = {
     svg,
