@@ -649,7 +649,7 @@ const rawTimelineEvents = [
   },
   {
     title: "SK'INSA",
-    category: "event",
+    category: "travel",
     startDate: "2024-01-01",
     color: "#DD2517",
     city: "Les Sybelles",
@@ -780,7 +780,7 @@ const rawTimelineEvents = [
   },
   {
     title: "Ski Isola 2000",
-    category: "event",
+    category: "travel",
     startDate: "2026-02-22",
     color: "#ffffff",
     city: "Isola 2000",
