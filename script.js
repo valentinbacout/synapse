@@ -4426,7 +4426,7 @@ function renderKnowledgeGraph(visibleCategoriesSet = getActiveCategories(), hidd
   // Le centrage reste uniquement disponible via les actions explicites
   // de l'utilisateur (bouton Recentrer ou Réinitialiser).
 
-  fitGraph(false, 0.35);
+  fitGraph(false, 0.3);
 
   networkGraphState = {
     svg,
