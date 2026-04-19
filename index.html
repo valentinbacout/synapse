@@ -38,9 +38,12 @@
                   <div>
                     <h2 id="timeline-card-title">Timeline</h2>
                   </div>
-                  <div class="timeline-card__zoom">
-                    <label class="filters-panel__zoom-label" for="zoom">Zoom</label>
-                    <input id="zoom" type="range" min="15" max="180" value="75" />
+                  <div class="timeline-card__actions">
+                    <div class="timeline-card__zoom">
+                      <label class="filters-panel__zoom-label" for="zoom">Zoom</label>
+                      <input id="zoom" type="range" min="15" max="180" value="75" />
+                    </div>
+                    <button type="button" class="timeline-btn timeline-btn--icon" id="timeline-expand-toggle" aria-label="Agrandir la timeline" aria-expanded="false">⤢</button>
                   </div>
                 </div>
 
@@ -268,6 +271,8 @@
       </section>
     </div>
   </div>
+  <div class="timeline-overlay-backdrop" id="timeline-overlay-backdrop" hidden></div>
+
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>

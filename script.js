@@ -30,6 +30,9 @@ const networkLinkDistanceEl = document.getElementById("network-link-distance");
 const networkLinkDistanceValueEl = document.getElementById("network-link-distance-value");
 const networkCenterForceEl = document.getElementById("network-center-force");
 const networkCenterForceValueEl = document.getElementById("network-center-force-value");
+const timelineCardEl = document.querySelector(".timeline-card");
+const timelineExpandToggleEl = document.getElementById("timeline-expand-toggle");
+const timelineOverlayBackdropEl = document.getElementById("timeline-overlay-backdrop");
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const LABEL_COL = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--label-col")) || 0;
@@ -249,6 +252,32 @@ function setNetworkSettingsOpen(isOpen) {
   networkSettingsPanelEl.classList.toggle("is-open", Boolean(isOpen));
   networkSettingsPanelEl.setAttribute("aria-hidden", isOpen ? "false" : "true");
   networkSettingsToggleEl.setAttribute("aria-expanded", isOpen ? "true" : "false");
+}
+
+function setTimelineFocusOpen(isOpen) {
+  const shouldOpen = Boolean(isOpen && timelineCardEl);
+
+  document.body.classList.toggle("timeline-focus-open", shouldOpen);
+  timelineCardEl?.classList.toggle("is-focus-open", shouldOpen);
+
+  if (timelineOverlayBackdropEl) {
+    timelineOverlayBackdropEl.hidden = !shouldOpen;
+    timelineOverlayBackdropEl.classList.toggle("is-open", shouldOpen);
+  }
+
+  if (timelineExpandToggleEl) {
+    timelineExpandToggleEl.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
+    timelineExpandToggleEl.setAttribute("aria-label", shouldOpen ? "Réduire la timeline" : "Agrandir la timeline");
+    timelineExpandToggleEl.textContent = shouldOpen ? "✕" : "⤢";
+  }
+
+  requestAnimationFrame(() => {
+    render({ preserveNetworkLayout: true });
+  });
+}
+
+function toggleTimelineFocus() {
+  setTimelineFocusOpen(!document.body.classList.contains("timeline-focus-open"));
 }
 
 function switchTab(tabName) {
@@ -4628,10 +4657,18 @@ mapViewToggleEl?.addEventListener("click", () => {
   }
 });
 
+
+timelineExpandToggleEl?.addEventListener("click", toggleTimelineFocus);
+timelineOverlayBackdropEl?.addEventListener("click", () => setTimelineFocusOpen(false));
+
 document.addEventListener("keydown", (event) => {
   if (event.key !== "Escape") return;
   if (activeStatDetailKey) {
     closeStatsModal();
+    return;
+  }
+  if (document.body.classList.contains("timeline-focus-open")) {
+    setTimelineFocusOpen(false);
     return;
   }
   if (isDrawerOpen) closeDrawer();
