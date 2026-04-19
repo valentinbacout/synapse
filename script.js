@@ -1228,6 +1228,8 @@ let statsModalSubtitleEl = null;
 let statsModalBodyEl = null;
 let statsModalCloseEl = null;
 let activeStatDetailKey = null;
+let statsDetailMap = null;
+let statsDetailMapLayers = [];
 const statsDetailDefinitions = new Map();
 
 function titleCase(value) {
@@ -1826,6 +1828,9 @@ function ensureStatsModal() {
 
 function closeStatsModal() {
   ensureStatsModal();
+  const activeDefinition = activeStatDetailKey ? statsDetailDefinitions.get(activeStatDetailKey) : null;
+  activeDefinition?.onClose?.();
+  cleanupStatsDetailMap();
   statsModalEl.classList.remove("is-open");
   statsModalEl.setAttribute("aria-hidden", "true");
   document.body.classList.remove("has-stats-modal-open");
@@ -1847,12 +1852,16 @@ function openStatsModal(detailKey) {
     statsModalSubtitleEl.textContent = definition.subtitle || "";
   }
 
+  cleanupStatsDetailMap();
   statsModalBodyEl.innerHTML = definition.html || '<p class="stats-detail-empty">Aucun détail disponible.</p>';
 
   statsModalEl.classList.add("is-open");
   statsModalEl.setAttribute("aria-hidden", "false");
   document.body.classList.add("has-stats-modal-open");
-  requestAnimationFrame(() => statsModalCloseEl?.focus());
+  requestAnimationFrame(() => {
+    definition.onOpen?.();
+    statsModalCloseEl?.focus();
+  });
 }
 
 function bindStatCard(card, detailKey, metaText) {
@@ -1954,6 +1963,147 @@ function createKpiStripMarkup(items = []) {
       `).join("")}
     </div>
   `;
+}
+
+function getDistancePercent(distance, maxDistance) {
+  const value = Number(distance) || 0;
+  const max = Number(maxDistance) || 0;
+  if (max <= 0) return 0;
+  return (value / max) * 100;
+}
+
+function buildDistanceSegmentLabel(segment) {
+  return `${segment.from} → ${segment.to}`;
+}
+
+function getTopDistanceSegments(distanceSegments = [], limit = 10) {
+  const rankedSegments = distanceSegments
+    .filter((segment) => {
+      const distance = Number(segment?.distance);
+      return Number.isFinite(distance) && distance > 0 && !isSamePlaceLabel(segment?.from, segment?.to);
+    })
+    .slice()
+    .sort((a, b) => (Number(b.distance) - Number(a.distance)) || ((b.startDate || 0) - (a.startDate || 0)));
+
+  const referenceDistance = Number(rankedSegments[0]?.distance) || 0;
+
+  return rankedSegments.slice(0, limit).map((segment, index) => ({
+    ...segment,
+    rank: index + 1,
+    percentOfLongest: getDistancePercent(segment.distance, referenceDistance || segment.distance)
+  }));
+}
+
+function createDistanceTopBarsMarkup(entries = [], maxDistance = 0) {
+  if (!entries.length) {
+    return '<p class="stat-visual-empty">Aucun trajet détecté.</p>';
+  }
+
+  return createMiniBarsMarkup(
+    entries.map((entry) => ({
+      label: `#${entry.rank} ${buildDistanceSegmentLabel(entry)}`,
+      value: Number(entry.distance) || 0,
+      meta: `${formatPercent(getDistancePercent(entry.distance, maxDistance), 0)} % du record · ${Math.round(Number(entry.distance) || 0)} km`
+    })),
+    {
+      maxValue: Math.max(Number(maxDistance) || 0, 1),
+      valueFormatter: (value) => `${formatPercent(getDistancePercent(value, maxDistance), 0)} %`
+    }
+  );
+}
+
+function cleanupStatsDetailMap() {
+  if (statsDetailMap) {
+    statsDetailMap.remove();
+    statsDetailMap = null;
+  }
+  statsDetailMapLayers = [];
+}
+
+function renderDistanceSegmentsMap(containerId, segments = [], highlightedSegment = null) {
+  const container = document.getElementById(containerId);
+  if (!container || typeof L === 'undefined') return;
+
+  cleanupStatsDetailMap();
+
+  const validSegments = segments.filter((segment) => (
+    Number.isFinite(Number(segment?.fromLat))
+    && Number.isFinite(Number(segment?.fromLon))
+    && Number.isFinite(Number(segment?.toLat))
+    && Number.isFinite(Number(segment?.toLon))
+  ));
+
+  if (!validSegments.length) {
+    container.innerHTML = '<p class="stats-detail-empty">Impossible d\'afficher la carte de ces trajets.</p>';
+    return;
+  }
+
+  statsDetailMap = L.map(container, {
+    zoomControl: true,
+    attributionControl: true
+  });
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(statsDetailMap);
+
+  const bounds = [];
+
+  validSegments.forEach((segment) => {
+    const coords = [
+      [Number(segment.fromLat), Number(segment.fromLon)],
+      [Number(segment.toLat), Number(segment.toLon)]
+    ];
+    const isHighlighted = highlightedSegment && segment.rank === highlightedSegment.rank;
+
+    const line = L.polyline(coords, {
+      color: isHighlighted ? '#38bdf8' : '#818cf8',
+      weight: isHighlighted ? 5 : 3,
+      opacity: isHighlighted ? 0.95 : 0.55
+    }).addTo(statsDetailMap);
+
+    line.bindPopup(`
+      <div class="map-popup">
+        <div class="map-popup-date">#${segment.rank} · ${escapeHtml(formatDetailDateRange(segment.startDate, segment.endDate))}</div>
+        <div class="map-popup-title">${escapeHtml(buildDistanceSegmentLabel(segment))}</div>
+        <div class="map-popup-location">${escapeHtml(Math.round(Number(segment.distance) || 0))} km · ${escapeHtml(segment.eventTitle || 'Trajet')}</div>
+      </div>
+    `);
+
+    const startMarker = L.circleMarker(coords[0], {
+      radius: isHighlighted ? 6 : 5,
+      color: isHighlighted ? '#f8fafc' : '#cbd5e1',
+      weight: 2,
+      fillColor: isHighlighted ? '#38bdf8' : '#334155',
+      fillOpacity: 0.95
+    }).addTo(statsDetailMap);
+    startMarker.bindTooltip(segment.from, { direction: 'top' });
+
+    const endMarker = L.circleMarker(coords[1], {
+      radius: isHighlighted ? 6 : 5,
+      color: isHighlighted ? '#f8fafc' : '#cbd5e1',
+      weight: 2,
+      fillColor: isHighlighted ? '#38bdf8' : '#334155',
+      fillOpacity: 0.95
+    }).addTo(statsDetailMap);
+    endMarker.bindTooltip(segment.to, { direction: 'top' });
+
+    statsDetailMapLayers.push(line, startMarker, endMarker);
+    bounds.push(...coords);
+  });
+
+  const leafletBounds = L.latLngBounds(bounds);
+  statsDetailMap.fitBounds(leafletBounds, { padding: [28, 28], maxZoom: 6 });
+
+  const highlightedLine = statsDetailMapLayers.find((layer) => highlightedSegment && layer instanceof L.Polyline);
+  if (highlightedLine && typeof highlightedLine.bringToFront === 'function') {
+    highlightedLine.bringToFront();
+  }
+
+  setTimeout(() => {
+    statsDetailMap?.invalidateSize();
+  }, 0);
 }
 
 
@@ -2245,7 +2395,11 @@ function renderStats() {
           eventId: occurrence.eventId,
           eventTitle: occurrence.eventTitle,
           groupKey: occurrence.groupKey,
-          segmentType: occurrence.segmentType
+          segmentType: occurrence.segmentType,
+          fromLat: startHomeLat,
+          fromLon: startHomeLon,
+          toLat: firstNode.lat,
+          toLon: firstNode.lon
         });
       }
     }
@@ -2263,7 +2417,11 @@ function renderStats() {
         eventId: occurrence.eventId,
         eventTitle: occurrence.eventTitle,
         groupKey: occurrence.groupKey,
-        segmentType: occurrence.segmentType
+        segmentType: occurrence.segmentType,
+        fromLat: prev.lat,
+        fromLon: prev.lon,
+        toLat: curr.lat,
+        toLon: curr.lon
       });
     }
 
@@ -2279,7 +2437,11 @@ function renderStats() {
           eventId: occurrence.eventId,
           eventTitle: occurrence.eventTitle,
           groupKey: occurrence.groupKey,
-          segmentType: occurrence.segmentType
+          segmentType: occurrence.segmentType,
+          fromLat: lastNode.lat,
+          fromLon: lastNode.lon,
+          toLat: endHomeLat,
+          toLon: endHomeLon
         });
       }
     }
@@ -2325,7 +2487,11 @@ function renderStats() {
       eventId: nextHome.id,
       eventTitle: `Déménagement : ${prevHome.title || prevHome.city || "Lieu de vie"} → ${nextHome.title || nextHome.city || "Lieu de vie"}`,
       groupKey: `move_${nextHome.id}`,
-      segmentType: "move"
+      segmentType: "move",
+      fromLat: prevLat,
+      fromLon: prevLon,
+      toLat: nextLat,
+      toLon: nextLon
     });
   }
 
@@ -2650,6 +2816,8 @@ function renderStats() {
       value,
       meta: `${value} voyage${value > 1 ? "s" : ""}`
     }));
+  const topDistanceSegments = getTopDistanceSegments(distanceSegments, 10);
+  const top3DistanceSegments = topDistanceSegments.slice(0, 3);
 
   setVisualMarkup("stat-distance-visual", createKpiStripMarkup([
     { label: "Trajets", value: String(distanceDetailItems.length) },
@@ -2677,7 +2845,7 @@ function renderStats() {
     valueFormatter: (value) => `${value}`
   }));
   setVisualMarkup("stat-longest-visual", longestTrip
-    ? createKpiStripMarkup([{ label: "Départ", value: longestTrip.from }, { label: "Arrivée", value: longestTrip.to }])
+    ? createDistanceTopBarsMarkup(top3DistanceSegments, longestDistance)
     : '<p class="stat-visual-empty">Aucun trajet détecté.</p>');
   setVisualMarkup("stat-artists-visual", createMiniPodiumMarkup(
     rankedArtistPerformances.slice(0, 3).map((entry) => ({
@@ -2743,13 +2911,40 @@ function renderStats() {
   });
 
   setStatDetail("longest", {
-    title: "Plus long trajet",
+    title: "Plus longs trajets",
     subtitle: longestTrip
       ? `${Math.round(longestDistance)} km · ${longestTrip.from} → ${longestTrip.to}`
       : "Aucun trajet détecté",
     html: longestTrip
-      ? createStatDetailList([{ title: `${longestTrip.from} → ${longestTrip.to}`, meta: `${formatDetailDateRange(longestTrip.startDate, longestTrip.endDate)} · ${Math.round(longestDistance)} km`, chips: [longestTrip.eventTitle || "Trajet"] }])
-      : '<p class="stats-detail-empty">Aucun trajet détecté.</p>'
+      ? `
+        <section class="artists-podium-section artists-top10-section">
+          <div class="artists-podium-section__header">
+            <h4 class="artists-podium-section__title">Top 10 trajets</h4>
+          </div>
+          <div class="stats-route-map" id="stats-longest-map"></div>
+        </section>
+        <section class="artists-podium-section artists-top10-section">
+          <div class="artists-podium-section__header">
+            <h4 class="artists-podium-section__title">Top 10 détaillé</h4>
+          </div>
+          ${createMiniBarsMarkup(
+        topDistanceSegments.map((segment) => ({
+          label: `#${segment.rank} ${buildDistanceSegmentLabel(segment)}`,
+          value: Number(segment.distance) || 0,
+          meta: `${formatDetailDateRange(segment.startDate, segment.endDate)} · ${segment.eventTitle || 'Trajet'}`
+        })),
+        {
+          maxValue: Math.max(longestDistance, 1),
+          valueFormatter: (value) => `${Math.round(value)} km`
+        }
+      )}
+        </section>
+      `
+      : '<p class="stats-detail-empty">Aucun trajet détecté.</p>',
+    onOpen: longestTrip
+      ? () => renderDistanceSegmentsMap("stats-longest-map", topDistanceSegments, topDistanceSegments[0])
+      : undefined,
+    onClose: cleanupStatsDetailMap
   });
 
   setStatDetail("cities", {
@@ -2763,19 +2958,35 @@ function renderStats() {
   });
 
   setStatDetail("topCountry", {
-    title: "Pays le plus visité",
+    title: "Classement des pays les plus visités",
     subtitle: topCountry
-      ? `${titleCase(topCountry)} · ${topCountryCount} événement${topCountryCount > 1 ? "s" : ""}`
+      ? `${titleCase(topCountry)} en tête · ${countryEntries.length} pays classés`
       : "Aucun pays détecté",
     subtitleHtml: topCountry
-      ? `${formatCountryLabelWithFlag(topCountry)} · ${topCountryCount} événement${topCountryCount > 1 ? "s" : ""}`
+      ? `${formatCountryLabelWithFlag(topCountry)} en tête · ${countryEntries.length} pays classés`
       : "Aucun pays détecté",
-    html: createStatDetailList(
-      topCountryEvents.map((event) => ({
-        title: event.title || "Sans titre",
-        meta: formatEventDateRange(event)
-      }))
-    )
+    html: countryEntries.length
+      ? `
+        <section class="artists-podium-section artists-top10-section">
+          <div class="artists-podium-section__header">
+            <h4 class="artists-podium-section__title">Classement complet</h4>
+            <p class="artists-podium-section__subtitle">Même logique que la vignette, mais avec l'ensemble des pays référencés.</p>
+          </div>
+          ${createMiniBarsMarkup(
+        countryEntries.map(([country, value], index) => ({
+          label: formatCountry(country),
+          value,
+          meta: `${value} événement${value > 1 ? "s" : ""} · rang #${index + 1}`,
+          flagMarkup: getCountryFlagMarkup(country, "country-flag country-flag--mini")
+        })),
+        {
+          valueFormatter: (value) => `${value}`,
+          labelPrefixHtml: (entry) => entry.flagMarkup || ""
+        }
+      )}
+        </section>
+      `
+      : '<p class="stats-detail-empty">Aucun pays détecté.</p>'
   });
 
   setStatDetail("bestYear", {
@@ -2817,7 +3028,7 @@ function renderStats() {
   bindStatCard(statCards.distance, "distance", "Afficher le détail des trajets cumulés");
   bindStatCard(statCards.longest, "longest", "Afficher le détail du plus long trajet");
   bindStatCard(statCards.bestYear, "bestYear", "Afficher tous les événements de l'année la plus active");
-  bindStatCard(statCards.topCountry, "topCountry", "Afficher les événements liés au pays le plus visité");
+  bindStatCard(statCards.topCountry, "topCountry", "Afficher le classement complet des pays les plus visités");
   bindStatCard(statCards.artistsSeen, "artistsSeen", "Afficher la liste des artistes vus");
   bindStatCard(statCards.themeParks, "themeParks", "Afficher la liste des parcs d'attractions");
 }
@@ -3709,12 +3920,19 @@ function buildNetworkGraphData(options = {}) {
     const sourceNodeId = `event:${event.id}`;
     getEventLinkTargets(event).forEach((linkValue) => {
       const linkedEvent = resolveLinkedEvent(linkValue, event, eventLookupMaps);
-      if (!linkedEvent || hiddenCategoriesSet.has(linkedEvent.category)) return;
 
-      const targetNodeId = `event:${linkedEvent.id}`;
-      if (sourceNodeId === targetNodeId) return;
+      if (linkedEvent && !hiddenCategoriesSet.has(linkedEvent.category)) {
+        const targetNodeId = `event:${linkedEvent.id}`;
+        if (sourceNodeId !== targetNodeId) {
+          ensureLink(sourceNodeId, targetNodeId, "event-link");
+        }
+        return;
+      }
 
-      ensureLink(sourceNodeId, targetNodeId, "event-link");
+      const countryNodeId = `country:${normalizeTagValue(linkValue)}`;
+      if (nodeMap.has(countryNodeId)) {
+        ensureLink(sourceNodeId, countryNodeId, "country");
+      }
     });
   });
 
