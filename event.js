@@ -1410,6 +1410,7 @@ const rawTimelineEvents = [
     country: "Belgique",
     latitude: 50.58441635686449,
     longitude: 3.8869135051694452,
+    link: ["Anelly"],
   },
   {
     title: "Sud de la France",
@@ -1469,7 +1470,8 @@ const rawTimelineEvents = [
         latitude: 45.237970159216964,
         longitude: 1.337997294703146
       },
-    ]
+    ],
+    link: ["Anelly"],
   },
   {
     title: "Été à Toulouse",
@@ -1480,7 +1482,8 @@ const rawTimelineEvents = [
     city: "Toulouse",
     country: "France",
     latitude: 43.6045,
-    longitude: 1.444
+    longitude: 1.444,
+    link: ["Anelly"],
   },
   {
     title: "Billund (LEGO House)",
@@ -1533,7 +1536,8 @@ const rawTimelineEvents = [
     city: "Paris",
     country: "France",
     latitude: 48.8566,
-    longitude: 2.3522
+    longitude: 2.3522,
+    link: ["Florine"],
   },
   {
     title: "Londres",
@@ -1546,6 +1550,7 @@ const rawTimelineEvents = [
     latitude: 51.5072,
     longitude: -0.1276,
     link: ["INSA Hauts-de-France"],
+    link: ["Margot"],
   },
   {
     title: "Kuala Lumpur",
@@ -1616,7 +1621,8 @@ const rawTimelineEvents = [
     city: "Ste Cécile",
     country: "France",
     latitude: 50.5723519591504,
-    longitude: 1.6019155512750112
+    longitude: 1.6019155512750112,
+    link: ["Margot"],
   },
   {
     title: "Monaco",
@@ -1754,6 +1760,7 @@ const rawTimelineEvents = [
     startDate: "2021-12-01",
     endDate: "2022-05-01",
     color: "#5F1696",
+    link: ["Campagne BDE INS'Avengers"],
   },
   {
     title: "Campagne BDE INS'Avengers",
@@ -1763,6 +1770,7 @@ const rawTimelineEvents = [
     details: "VS Caristocrates",
     color: "#5F1696",
     youtubeUrl: "https://www.youtube.com/watch?v=XYFgU-wVLu4&t=3s",
+    link: ["Mandat BDE"],
   },
   {
     title: "Mandat BDE",
@@ -1797,7 +1805,8 @@ const rawTimelineEvents = [
         src: "images/AGO_INSA_Alumni_HdF_2026.jpeg",
         alt: "AGO INSA Alumni HDF",
       }
-    ]
+    ],
+    link: ["Secrétaire INSA Alumni HDF"],
   },
   {
     title: "Secrétaire Adjoint INSA Alumni HDF",
