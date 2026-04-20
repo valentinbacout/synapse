@@ -33,7 +33,8 @@ const rawTimelineEvents = [
     city: "Vénissieux",
     country: "France",
     latitude: 45.71716012008505,
-    longitude: 4.889322758101268
+    longitude: 4.889322758101268,
+    link: ["Stage CEREMA"],
   },
   {
     title: "Colocation L'Épave, Anzin",
@@ -62,7 +63,8 @@ const rawTimelineEvents = [
     city: "Malacca",
     country: "Malaisie",
     latitude: 2.1992834859871064,
-    longitude: 102.23149617804286
+    longitude: 102.23149617804286,
+    link: ["Stage Joubert Group"],
   },
   {
     title: "Bousies",
@@ -84,7 +86,8 @@ const rawTimelineEvents = [
     city: "Fréjus",
     country: "France",
     latitude: 43.47348292243457,
-    longitude: 6.732980709624157
+    longitude: 6.732980709624157,
+    link: ["Ingénieur Conception Mécanique"],
   },
 
   // EDUCATION / TRAVAIL
@@ -130,6 +133,7 @@ const rawTimelineEvents = [
     startDate: "2016-06-15",
     details: "Mention Très Bien",
     color: "#73aff6",
+    link: ["Collège Montaigne Poix du nord"],
   },
   {
     title: "Lycée Dupleix Landrecies",
@@ -153,7 +157,8 @@ const rawTimelineEvents = [
     city: "Briançon",
     country: "France",
     latitude: 44.866597723817335,
-    longitude: 6.600266734709518
+    longitude: 6.600266734709518,
+    link: ["Lycée Dupleix Landrecies"],
   },
   {
     title: "Paris (Palais de la découverte)",
@@ -164,7 +169,8 @@ const rawTimelineEvents = [
     city: "Paris",
     country: "France",
     latitude: 48.8662227844682,
-    longitude: 2.3126148876737664
+    longitude: 2.3126148876737664,
+    link: ["Lycée Dupleix Landrecies"],
   },
   {
     title: "Baccalauréat",
@@ -172,6 +178,7 @@ const rawTimelineEvents = [
     startDate: "2019-06-30",
     details: "Mention Très Bien",
     color: "#73aff6",
+    link: ["Lycée Dupleix Landrecies"],
   },
   {
     title: "INSA Hauts-de-France",
@@ -366,6 +373,7 @@ const rawTimelineEvents = [
     category: "education",
     startDate: "2026-04-09",
     color: "#01B0DC",
+    link: ["Ingénieur Conception Mécanique"],
   },
   // PROJECTS
   {
@@ -494,7 +502,8 @@ const rawTimelineEvents = [
     city: "Valenciennes",
     country: "France",
     latitude: 50.41388769219681,
-    longitude: 3.543228050993047
+    longitude: 3.543228050993047,
+    link: ["Préparation liste INS'Avengers"],
   },
   {
     title: "Walibi",
@@ -517,7 +526,8 @@ const rawTimelineEvents = [
     city: "Calais",
     country: "France",
     latitude: 50.963897107765035,
-    longitude: 1.8247239131276338
+    longitude: 1.8247239131276338,
+    link: ["Campagne BDE INS'Avengers"],
   },
   {
     title: "Festival Nuits Secrètes",
@@ -774,7 +784,8 @@ const rawTimelineEvents = [
     city: "Monaco",
     country: "Monaco",
     latitude: 43.736574872512115,
-    longitude: 7.422248392449757
+    longitude: 7.422248392449757,
+    link: ["Ingénieur Conception Mécanique"],
   },
   {
     title: "Match OGC Nice",
@@ -784,7 +795,8 @@ const rawTimelineEvents = [
     city: "Nice",
     country: "France",
     latitude: 43.70501063225729,
-    longitude: 7.192594632144543
+    longitude: 7.192594632144543,
+    link: ["Ingénieur Conception Mécanique"],
   },
   {
     title: "Match OM",
@@ -794,7 +806,8 @@ const rawTimelineEvents = [
     city: "Marseille",
     country: "France",
     latitude: 43.26985294683768,
-    longitude: 5.396072380478287
+    longitude: 5.396072380478287,
+    link: ["Ingénieur Conception Mécanique"],
   },
   {
     title: "Ski Isola 2000",
@@ -815,7 +828,8 @@ const rawTimelineEvents = [
     city: "Monaco",
     country: "Monaco",
     latitude: 43.736761548271005,
-    longitude: 7.422983618723099
+    longitude: 7.422983618723099,
+    link: ["Ingénieur Conception Mécanique"],
   },
   {
     title: "Gala INSA HDF",
