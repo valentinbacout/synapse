@@ -1,4 +1,5 @@
 const events = window.timelineEvents || [];
+const peopleDirectory = window.timelinePeople || {};
 
 const stage = document.getElementById("stage");
 const zoomEl = document.getElementById("zoom");
@@ -1346,6 +1347,47 @@ function normalizeLineup(lineup) {
   if (!Array.isArray(lineup)) return [];
   return lineup
     .map((entry) => normalizeLineupArtistEntry(entry))
+    .filter(Boolean);
+}
+
+function normalizePersonEntry(entry) {
+  if (typeof entry === "string") {
+    const name = entry.trim();
+    if (!name) return null;
+
+    const defaultRole = String(peopleDirectory[name]?.role || "").trim();
+    return { name, role: defaultRole || null, raw: entry };
+  }
+
+  if (entry && typeof entry === "object") {
+    const name = String(entry.name || entry.person || entry.title || "").trim();
+    if (!name) return null;
+
+    const explicitRole = String(entry.role || entry.label || entry.meta || "").trim();
+    const defaultRole = String(peopleDirectory[name]?.role || "").trim();
+
+    return {
+      name,
+      role: explicitRole || defaultRole || null,
+      raw: entry
+    };
+  }
+
+  const fallbackName = String(entry || "").trim();
+  if (!fallbackName) return null;
+
+  const defaultRole = String(peopleDirectory[fallbackName]?.role || "").trim();
+  return { name: fallbackName, role: defaultRole || null, raw: entry };
+}
+
+function normalizePeople(people) {
+  if (!Array.isArray(people)) {
+    const single = normalizePersonEntry(people);
+    return single ? [single] : [];
+  }
+
+  return people
+    .map((entry) => normalizePersonEntry(entry))
     .filter(Boolean);
 }
 
@@ -3784,6 +3826,7 @@ function getNodeTypeLabel(type) {
     category: "Catégorie",
     country: "Pays",
     artist: "Artiste",
+    person: "Personne",
     tag: "Tag"
   })[type] || "Nœud";
 }
@@ -3837,6 +3880,17 @@ function resolveLinkedEvent(linkValue, sourceEvent, lookupMaps) {
 
   const titleMatches = lookupMaps.byTitle.get(normalizeTagValue(normalizedLinkValue)) || [];
   return titleMatches.find((candidate) => candidate.id !== sourceEvent.id) || null;
+}
+
+function resolvePersonEventMatch(personEntry, sourceEvent, lookupMaps) {
+  const normalizedPersonName = normalizeTagValue(personEntry?.name || "");
+  if (!normalizedPersonName) return null;
+
+  const titleMatches = lookupMaps.byTitle.get(normalizedPersonName) || [];
+  return titleMatches.find((candidate) => (
+    candidate.id !== sourceEvent.id
+    && candidate.category === "personal"
+  )) || null;
 }
 
 function buildNetworkGraphData(options = {}) {
@@ -4000,6 +4054,25 @@ function buildNetworkGraphData(options = {}) {
       });
       ensureLink(eventNodeId, artistNodeId, "artist");
     });
+
+    normalizePeople(event.people).forEach((personEntry) => {
+      const matchingPersonalEvent = resolvePersonEventMatch(personEntry, event, eventLookupMaps);
+
+      if (matchingPersonalEvent && !hiddenCategoriesSet.has(matchingPersonalEvent.category)) {
+        ensureLink(eventNodeId, `event:${matchingPersonalEvent.id}`, "person");
+        return;
+      }
+
+      const personNodeId = `person:${normalizeTagValue(personEntry.name)}`;
+      ensureNode(personNodeId, {
+        type: "person",
+        label: personEntry.name,
+        color: "#34d399",
+        meta: personEntry.role || "Personne",
+        category: event.category
+      });
+      ensureLink(eventNodeId, personNodeId, "person");
+    });
   });
 
   normalized.forEach((event) => {
@@ -4028,6 +4101,7 @@ function buildNetworkGraphData(options = {}) {
     category: 12,
     country: 11,
     artist: 8,
+    person: 8,
     tag: 7
   };
 
@@ -4217,6 +4291,7 @@ function renderKnowledgeGraph(visibleCategoriesSet = getActiveCategories(), hidd
     step: 78,
     country: 82,
     artist: 104,
+    person: 98,
     tag: 76,
     "event-link": 92
   };
@@ -4226,6 +4301,7 @@ function renderKnowledgeGraph(visibleCategoriesSet = getActiveCategories(), hidd
     step: 1.02,
     country: 1.02,
     artist: 0.88,
+    person: 0.92,
     tag: 0.82,
     "event-link": 0.98
   };

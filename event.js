@@ -1,3 +1,21 @@
+const timelinePeople = {
+  Maman: { role: "Family" },
+  Romain: { role: "Ami" },
+  Enzo: { role: "Ami" },
+  Ewen: { role: "Ami" },
+  Adrien: { role: "Ami" },
+  Salma: { role: "Ami" },
+  Clara: { role: "Ex" },
+  Anelly: { role: "Ex" },
+  Florine: { role: "Ex" },
+  Margot: { role: "Ex" },
+  Auriane: { role: "Ex" },
+  GrégoireL: { role: "Collègue" },
+  GrégoireP: { role: "Ami" },
+  Alexis: { role: "Collègue" },
+  Emile: { role: "Collègue" },
+};
+
 const rawTimelineEvents = [
   // LIVING PLACE (background only)
   {
@@ -53,6 +71,7 @@ const rawTimelineEvents = [
       },
     ],
     link: ["INSA Hauts-de-France"],
+    people: ["Romain", "Enzo", "Ewen"]
   },
   {
     title: "Malacca",
@@ -212,6 +231,7 @@ const rawTimelineEvents = [
     color: "#22a6b3",
     details: "Étude de la capacité d’absorption de différentes structures lattices hybrides avec des gradients de réseaux",
     link: ["INSA Hauts-de-France"],
+    people: ["Romain", "Adrien", "Salma"]
   },
   {
     title: "Projet VINCI",
@@ -651,7 +671,8 @@ const rawTimelineEvents = [
     latitude: 49.13423189756852,
     longitude: 2.5710204858504886,
     Tags: "theme park",
-    rating: 8.5
+    rating: 8.5,
+    people: ["Florine"]
   },
   {
     title: "WEI 5A",
@@ -760,7 +781,8 @@ const rawTimelineEvents = [
     city: "Lille",
     country: "France",
     latitude: 50.62983708060777,
-    longitude: 3.0686692579418358
+    longitude: 3.0686692579418358,
+    people: ["Margot"]
   },
   {
     title: "Gala INSA HDF",
@@ -773,6 +795,7 @@ const rawTimelineEvents = [
     latitude: 50.375292964496396,
     longitude: 3.5219095190037613,
     link: ["INSA Hauts-de-France"],
+    people: ["Auriane", "Romain"]
   },
   {
     title: "Soirée Yacht Monaco",
@@ -797,6 +820,7 @@ const rawTimelineEvents = [
     latitude: 43.70501063225729,
     longitude: 7.192594632144543,
     link: ["Ingénieur Conception Mécanique"],
+    people: ["Alexis", "Emile", "Grégoire L"]
   },
   {
     title: "Match OM",
@@ -808,6 +832,7 @@ const rawTimelineEvents = [
     latitude: 43.26985294683768,
     longitude: 5.396072380478287,
     link: ["Ingénieur Conception Mécanique"],
+    people: ["Alexis", "Emile", "Grégoire L"]
   },
   {
     title: "Ski Isola 2000",
@@ -817,7 +842,8 @@ const rawTimelineEvents = [
     city: "Isola 2000",
     country: "France",
     latitude: 44.18551202560337,
-    longitude: 7.157200982255279
+    longitude: 7.157200982255279,
+    people: ["Alexis", "Emile", "Grégoire L"]
   },
   {
     title: "AMWC - Soirée Monaco",
@@ -830,6 +856,7 @@ const rawTimelineEvents = [
     latitude: 43.736761548271005,
     longitude: 7.422983618723099,
     link: ["Ingénieur Conception Mécanique"],
+    people: ["Emile", "Grégoire L"]
   },
   {
     title: "Gala INSA HDF",
@@ -841,6 +868,7 @@ const rawTimelineEvents = [
     country: "France",
     latitude: 50.375292964496396,
     longitude: 3.5219095190037613,
+    people: ["Romain", "Grégoire P", "Anelly"]
   },
   {
     title: "Concert Damso",
@@ -852,7 +880,8 @@ const rawTimelineEvents = [
     city: "Nice",
     country: "France",
     latitude: 43.67858911814832,
-    longitude: 7.198901439819272
+    longitude: 7.198901439819272,
+    people: ["Romain"]
   },
   {
     title: "GP Historique France",
@@ -862,7 +891,8 @@ const rawTimelineEvents = [
     city: "Le Castellet",
     country: "France",
     latitude: 43.251355747607136,
-    longitude: 5.793338140173849
+    longitude: 5.793338140173849,
+    people: ["Maman"]
   },
 
   // TRAVEL
@@ -1388,7 +1418,8 @@ const rawTimelineEvents = [
     city: "Ayen",
     country: "France",
     latitude: 45.237970159216964,
-    longitude: 1.337997294703146
+    longitude: 1.337997294703146,
+    people: ["Clara"],
   },
   {
     title: "Ski",
@@ -1410,7 +1441,7 @@ const rawTimelineEvents = [
     country: "Belgique",
     latitude: 50.58441635686449,
     longitude: 3.8869135051694452,
-    link: ["Anelly"],
+    people: ["Anelly"],
   },
   {
     title: "Sud de la France",
@@ -1471,7 +1502,7 @@ const rawTimelineEvents = [
         longitude: 1.337997294703146
       },
     ],
-    link: ["Anelly"],
+    people: ["Anelly"],
   },
   {
     title: "Été à Toulouse",
@@ -1483,7 +1514,7 @@ const rawTimelineEvents = [
     country: "France",
     latitude: 43.6045,
     longitude: 1.444,
-    link: ["Anelly"],
+    people: ["Anelly"]
   },
   {
     title: "Billund (LEGO House)",
@@ -1514,7 +1545,8 @@ const rawTimelineEvents = [
     city: "Luxembourg",
     country: "Luxembourg",
     latitude: 49.6116,
-    longitude: 6.1319
+    longitude: 6.1319,
+    people: ["Romain", "Enzo", "Ewen"]
   },
   {
     title: "Amsterdam",
@@ -1537,7 +1569,7 @@ const rawTimelineEvents = [
     country: "France",
     latitude: 48.8566,
     longitude: 2.3522,
-    link: ["Florine"],
+    people: ["Florine"]
   },
   {
     title: "Londres",
@@ -1550,7 +1582,7 @@ const rawTimelineEvents = [
     latitude: 51.5072,
     longitude: -0.1276,
     link: ["INSA Hauts-de-France"],
-    link: ["Margot"],
+    people: ["Margot"]
   },
   {
     title: "Kuala Lumpur",
@@ -1622,7 +1654,7 @@ const rawTimelineEvents = [
     country: "France",
     latitude: 50.5723519591504,
     longitude: 1.6019155512750112,
-    link: ["Margot"],
+    people: ["Margot"]
   },
   {
     title: "Monaco",
@@ -1749,7 +1781,8 @@ const rawTimelineEvents = [
         latitude: 49.007844048455425,
         longitude: 2.550611200403899
       }
-    ]
+    ],
+    people: ["Maman"]
   },
 
   // ASSOCIATION
@@ -1787,6 +1820,7 @@ const rawTimelineEvents = [
     startDate: "2024-04-12",
     description: "Liste troll BDE",
     color: "#705834",
+    people: ["Romain"]
   },
   {
     title: "Secrétaire INSA Alumni HDF",

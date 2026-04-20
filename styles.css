@@ -2530,6 +2530,10 @@ body.has-stats-modal-open {
   stroke: rgba(244, 114, 182, 0.22);
 }
 
+.network-link--person {
+  stroke: rgba(52, 211, 153, 0.24);
+}
+
 .network-link--tag {
   stroke: rgba(167, 139, 250, 0.22);
 }
