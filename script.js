@@ -52,7 +52,7 @@ const LABEL_CLEARANCE = 10;
 const OVERLAP = 20;
 const TOTAL_COUNTRIES = 195;
 
-const CATEGORY_ORDER = ["living_place", "education", "association", "event", "travel", "projects", "personal"];
+const CATEGORY_ORDER = ["living_place", "education", "travel", "event", "association", "projects", "personal"];
 const CATEGORY_LABELS = {
   education: "Éducation / Travail",
   living_place: "Lieux de vie",
@@ -73,7 +73,7 @@ const CATEGORY_COLORS = {
   travel: "#22a6b3",
   projects: "#f0932b",
   personal: "#ffffff",
-  living_place: "#00c3ff",
+  living_place: "#00a33f",
   system: "#ffffff"
 };
 
