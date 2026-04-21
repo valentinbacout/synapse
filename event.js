@@ -1,19 +1,23 @@
 const timelinePeople = {
   Maman: { role: "Family" },
-  Romain: { role: "Ami" },
-  Enzo: { role: "Ami" },
-  Ewen: { role: "Ami" },
-  Adrien: { role: "Ami" },
-  Salma: { role: "Ami" },
+  Romain_B: { role: "Ami" },
+  Enzo_B: { role: "Ami" },
+  Ewen_D: { role: "Ami" },
+  Adrien_H: { role: "Ami" },
+  Salma_B: { role: "Ami" },
+  Ulfie_D: { role: "Ami" },
+  Ophélie_D: { role: "Ami" },
+  Margot_F: { role: "Ami" },
+  Hugo_D: { role: "Ami" },
   Clara: { role: "Ex" },
-  Anelly: { role: "Ex" },
-  Florine: { role: "Ex" },
-  Margot: { role: "Ex" },
-  Auriane: { role: "Ex" },
-  GrégoireL: { role: "Collègue" },
-  GrégoireP: { role: "Ami" },
-  Alexis: { role: "Collègue" },
-  Emile: { role: "Collègue" },
+  Anelly_A: { role: "Ex" },
+  Florine_M: { role: "Ex" },
+  Margot_B: { role: "Ex" },
+  Auriane_L: { role: "Ex" },
+  Grégoire_L: { role: "Collègue" },
+  Grégoire_P: { role: "Ami" },
+  Alexis_H: { role: "Collègue" },
+  Emile_C: { role: "Collègue" },
 };
 
 const rawTimelineEvents = [
@@ -24,7 +28,7 @@ const rawTimelineEvents = [
     startDate: "2002-02-20",
     endDate: "2019-08-31",
     description: "Enfance",
-    color: "#00c3ff",
+    color: "#00a33f",
     city: "Bousies",
     country: "France",
     latitude: 50.1500978941162,
@@ -35,7 +39,7 @@ const rawTimelineEvents = [
     category: "living_place",
     startDate: "2019-09-01",
     endDate: "2022-09-01",
-    color: "#00c3ff",
+    color: "#00a33f",
     city: "Valenciennes",
     country: "France",
     latitude: 50.32014331908122,
@@ -47,7 +51,7 @@ const rawTimelineEvents = [
     category: "living_place",
     startDate: "2022-09-02",
     endDate: "2023-01-22",
-    color: "#00c3ff",
+    color: "#00a33f",
     city: "Vénissieux",
     country: "France",
     latitude: 45.71716012008505,
@@ -59,7 +63,7 @@ const rawTimelineEvents = [
     category: "living_place",
     startDate: "2023-01-23",
     endDate: "2024-03-01",
-    color: "#00c3ff",
+    color: "#00a33f",
     city: "Anzin",
     country: "France",
     latitude: 50.372632899131226,
@@ -71,14 +75,14 @@ const rawTimelineEvents = [
       },
     ],
     link: ["INSA Hauts-de-France"],
-    people: ["Romain", "Enzo", "Ewen"]
+    people: ["Romain_B", "Enzo_B", "Ewen_D"]
   },
   {
     title: "Malacca",
     category: "living_place",
     startDate: "2024-03-02",
     endDate: "2024-07-25",
-    color: "#00c3ff",
+    color: "#00a33f",
     city: "Malacca",
     country: "Malaisie",
     latitude: 2.1992834859871064,
@@ -90,7 +94,7 @@ const rawTimelineEvents = [
     category: "living_place",
     startDate: "2024-07-26",
     endDate: "2025-03-01",
-    color: "#00c3ff",
+    color: "#00a33f",
     city: "Bousies",
     country: "France",
     latitude: 50.1500978941162,
@@ -101,7 +105,7 @@ const rawTimelineEvents = [
     category: "living_place",
     startDate: "2025-03-02",
     endDate: "today",
-    color: "#00c3ff",
+    color: "#00a33f",
     city: "Fréjus",
     country: "France",
     latitude: 43.47348292243457,
@@ -164,7 +168,8 @@ const rawTimelineEvents = [
     city: "Landrecies",
     country: "France",
     latitude: 50.122828318807166,
-    longitude: 3.6871139758649445
+    longitude: 3.6871139758649445,
+    people: ["Ulfie_D", "Hugo_D", "Ophélie_D", "Margot_F"]
   },
   {
     title: "Sortie Briançon",
@@ -178,6 +183,7 @@ const rawTimelineEvents = [
     latitude: 44.866597723817335,
     longitude: 6.600266734709518,
     link: ["Lycée Dupleix Landrecies"],
+    people: ["Ulfie_D", "Hugo_D", "Ophélie_D", "Margot_F"]
   },
   {
     title: "Paris (Palais de la découverte)",
@@ -190,6 +196,7 @@ const rawTimelineEvents = [
     latitude: 48.8662227844682,
     longitude: 2.3126148876737664,
     link: ["Lycée Dupleix Landrecies"],
+    people: ["Ulfie_D", "Hugo_D", "Ophélie_D", "Margot_F"]
   },
   {
     title: "Baccalauréat",
@@ -209,7 +216,8 @@ const rawTimelineEvents = [
     city: "Valenciennes",
     country: "France",
     latitude: 50.32477614992255,
-    longitude: 3.5149673843270937
+    longitude: 3.5149673843270937,
+    people: ["Romain_B", "Ewen_D", "Enzo_B", "Anelly_A", "Thibault_B", "Jonathan_T"]
   },
   {
     title: "Stage CEREMA",
@@ -231,7 +239,7 @@ const rawTimelineEvents = [
     color: "#22a6b3",
     details: "Étude de la capacité d’absorption de différentes structures lattices hybrides avec des gradients de réseaux",
     link: ["INSA Hauts-de-France"],
-    people: ["Romain", "Adrien", "Salma"]
+    people: ["Romain_B", "Adrien_H", "Salma_B"]
   },
   {
     title: "Projet VINCI",
@@ -524,6 +532,7 @@ const rawTimelineEvents = [
     latitude: 50.41388769219681,
     longitude: 3.543228050993047,
     link: ["Préparation liste INS'Avengers"],
+    people: ["Romain_B", "Thibault_B", "Jonathan_T"]
   },
   {
     title: "Walibi",
@@ -582,7 +591,8 @@ const rawTimelineEvents = [
     city: "Thuin",
     country: "Belgique",
     latitude: 50.36560588145243,
-    longitude: 4.332023214114497
+    longitude: 4.332023214114497,
+    people: ["Enzo_B", "Margot_F"]
   },
   {
     title: "TOSS CentraleSupélec",
@@ -634,13 +644,14 @@ const rawTimelineEvents = [
     startDate: "2023-07-23",
     color: "#FF6A6E",
     lineup: [
-      { name: "Lorenzo", rating: 8.75 },
+      { name: "LorEnzo_B", rating: 8.75 },
       { name: "Lomepal", rating: 7.5 },
       "Sofiane Pamart", "Pomme"],
     city: "Aulnoye-Aymeries",
     country: "France",
     latitude: 50.19531093953841,
-    longitude: 3.8547170746861097
+    longitude: 3.8547170746861097,
+    people: ["Florine_M", "Enzo_B", "Margot_F"]
   },
   {
     title: "Spa-Francorchamps",
@@ -672,7 +683,7 @@ const rawTimelineEvents = [
     longitude: 2.5710204858504886,
     Tags: "theme park",
     rating: 8.5,
-    people: ["Florine"]
+    people: ["Florine_M"]
   },
   {
     title: "WEI 5A",
@@ -771,7 +782,8 @@ const rawTimelineEvents = [
     city: "Comines",
     country: "France",
     latitude: 50.76539278791491,
-    longitude: 3.0064733415107754
+    longitude: 3.0064733415107754,
+    people: ["Ulfie_D", "Ophélie_D"]
   },
   {
     title: "Braderie de Lille",
@@ -782,7 +794,7 @@ const rawTimelineEvents = [
     country: "France",
     latitude: 50.62983708060777,
     longitude: 3.0686692579418358,
-    people: ["Margot"]
+    people: ["Margot_B"]
   },
   {
     title: "Gala INSA HDF",
@@ -795,7 +807,7 @@ const rawTimelineEvents = [
     latitude: 50.375292964496396,
     longitude: 3.5219095190037613,
     link: ["INSA Hauts-de-France"],
-    people: ["Auriane", "Romain"]
+    people: ["Auriane_L", "Romain_B"]
   },
   {
     title: "Soirée Yacht Monaco",
@@ -820,7 +832,7 @@ const rawTimelineEvents = [
     latitude: 43.70501063225729,
     longitude: 7.192594632144543,
     link: ["Ingénieur Conception Mécanique"],
-    people: ["Alexis", "Emile", "Grégoire L"]
+    people: ["Alexis_H", "Emile_C", "Grégoire_L"]
   },
   {
     title: "Match OM",
@@ -832,7 +844,7 @@ const rawTimelineEvents = [
     latitude: 43.26985294683768,
     longitude: 5.396072380478287,
     link: ["Ingénieur Conception Mécanique"],
-    people: ["Alexis", "Emile", "Grégoire L"]
+    people: ["Alexis_H", "Emile_C", "Grégoire_L"]
   },
   {
     title: "Ski Isola 2000",
@@ -843,7 +855,7 @@ const rawTimelineEvents = [
     country: "France",
     latitude: 44.18551202560337,
     longitude: 7.157200982255279,
-    people: ["Alexis", "Emile", "Grégoire L"]
+    people: ["Alexis_H", "Emile_C", "Grégoire_L"]
   },
   {
     title: "AMWC - Soirée Monaco",
@@ -856,7 +868,7 @@ const rawTimelineEvents = [
     latitude: 43.736761548271005,
     longitude: 7.422983618723099,
     link: ["Ingénieur Conception Mécanique"],
-    people: ["Emile", "Grégoire L"]
+    people: ["Emile_C", "Grégoire_L"]
   },
   {
     title: "Gala INSA HDF",
@@ -868,7 +880,7 @@ const rawTimelineEvents = [
     country: "France",
     latitude: 50.375292964496396,
     longitude: 3.5219095190037613,
-    people: ["Romain", "Grégoire P", "Anelly"]
+    people: ["Romain_B", "Grégoire_P", "Anelly_A"]
   },
   {
     title: "Concert Damso",
@@ -881,7 +893,7 @@ const rawTimelineEvents = [
     country: "France",
     latitude: 43.67858911814832,
     longitude: 7.198901439819272,
-    people: ["Romain"]
+    people: ["Romain_B"]
   },
   {
     title: "GP Historique France",
@@ -1436,12 +1448,12 @@ const rawTimelineEvents = [
     title: "Pairi Daiza",
     category: "travel",
     startDate: "2020-07-03",
-    color: "#2FD866",
+    color: "#7D5B26",
     city: "Ath",
     country: "Belgique",
     latitude: 50.58441635686449,
     longitude: 3.8869135051694452,
-    people: ["Anelly"],
+    people: ["Anelly_A"],
   },
   {
     title: "Sud de la France",
@@ -1502,7 +1514,7 @@ const rawTimelineEvents = [
         longitude: 1.337997294703146
       },
     ],
-    people: ["Anelly"],
+    people: ["Anelly_A"],
   },
   {
     title: "Été à Toulouse",
@@ -1514,7 +1526,7 @@ const rawTimelineEvents = [
     country: "France",
     latitude: 43.6045,
     longitude: 1.444,
-    people: ["Anelly"]
+    people: ["Anelly_A"]
   },
   {
     title: "Billund (LEGO House)",
@@ -1530,7 +1542,7 @@ const rawTimelineEvents = [
     title: "Pairi Daiza",
     category: "travel",
     startDate: "2022-08-30",
-    color: "#2FD866",
+    color: "#7D5B26",
     city: "Ath",
     country: "Belgique",
     latitude: 50.58441635686449,
@@ -1546,7 +1558,7 @@ const rawTimelineEvents = [
     country: "Luxembourg",
     latitude: 49.6116,
     longitude: 6.1319,
-    people: ["Romain", "Enzo", "Ewen"]
+    people: ["Romain_B", "Enzo_B", "Ewen_D"]
   },
   {
     title: "Amsterdam",
@@ -1569,7 +1581,7 @@ const rawTimelineEvents = [
     country: "France",
     latitude: 48.8566,
     longitude: 2.3522,
-    people: ["Florine"]
+    people: ["Florine_M"]
   },
   {
     title: "Londres",
@@ -1582,7 +1594,7 @@ const rawTimelineEvents = [
     latitude: 51.5072,
     longitude: -0.1276,
     link: ["INSA Hauts-de-France"],
-    people: ["Margot"]
+    people: ["Margot_B"]
   },
   {
     title: "Kuala Lumpur",
@@ -1654,7 +1666,7 @@ const rawTimelineEvents = [
     country: "France",
     latitude: 50.5723519591504,
     longitude: 1.6019155512750112,
-    people: ["Margot"]
+    people: ["Margot_B"]
   },
   {
     title: "Monaco",
@@ -1671,7 +1683,7 @@ const rawTimelineEvents = [
     title: "Pairi Daiza",
     category: "travel",
     startDate: "2024-12-28",
-    color: "#2FD866",
+    color: "#7D5B26",
     city: "Ath",
     country: "Belgique",
     latitude: 50.58441635686449,
@@ -1704,7 +1716,7 @@ const rawTimelineEvents = [
     title: "Pairi Daiza",
     category: "travel",
     startDate: "2025-12-27",
-    color: "#2FD866",
+    color: "#7D5B26",
     city: "Ath",
     country: "Belgique",
     latitude: 50.58441635686449,
@@ -1820,7 +1832,7 @@ const rawTimelineEvents = [
     startDate: "2024-04-12",
     description: "Liste troll BDE",
     color: "#705834",
-    people: ["Romain"]
+    people: ["Romain_B"]
   },
   {
     title: "Secrétaire INSA Alumni HDF",
@@ -1859,28 +1871,28 @@ const rawTimelineEvents = [
     color: "#ffffff",
   },
   {
-    title: "Anelly",
+    title: "Anelly_A",
     category: "personal",
     startDate: "2020-01-20",
     endDate: "2021-09-01",
     color: "#ffffff",
   },
   {
-    title: "Florine",
+    title: "Florine_M",
     category: "personal",
     startDate: "2023-03-03",
     endDate: "2023-10-01",
     color: "#ffffff",
   },
   {
-    title: "Margot",
+    title: "Margot_B",
     category: "personal",
     startDate: "2023-10-10",
     endDate: "2024-11-15",
     color: "#ffffff",
   },
   {
-    title: "Auriane",
+    title: "Auriane_L",
     category: "personal",
     startDate: "2025-04-19",
     endDate: "2025-12-19",
