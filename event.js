@@ -503,10 +503,10 @@ const rawTimelineEvents = [
     link: ["INSA Hauts-de-France"],
   },
   {
-    title: "WEI 3e année",
+    title: "WEI 3A",
     category: "event",
     subcategory: "Soirées",
-    startDate: "2021-09-01",
+    startDate: "2021-09-12",
     color: "#DD2517",
     latitude: 50.236457513050865,
     longitude: 2.106384076176955,
@@ -689,7 +689,7 @@ const rawTimelineEvents = [
     title: "WEI 5A",
     category: "event",
     subcategory: "Soirées",
-    startDate: "2023-09-01",
+    startDate: "2023-09-15",
     color: "#DD2517",
     details: "Organisé par INS'Avengers",
     latitude: 48.40620042399061,
@@ -1617,6 +1617,17 @@ const rawTimelineEvents = [
     latitude: 48.8566,
     longitude: 2.3522,
     people: ["Florine_M"]
+  },
+    {
+    title: "Aix la Chapelle",
+    category: "travel",
+    startDate: "2023-11-25",
+    color: "#DD2517",
+    city: "Aix la Chapelle",
+    country: "Allemagne",
+    latitude: 50.774736619528646, 
+    longitude: 6.083907944223392,
+    people: ["Margot_B"]
   },
   {
     title: "Londres",
