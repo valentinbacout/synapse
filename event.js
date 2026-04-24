@@ -217,7 +217,7 @@ const rawTimelineEvents = [
     country: "France",
     latitude: 50.32477614992255,
     longitude: 3.5149673843270937,
-    people: ["Romain_B", "Ewen_D", "Enzo_B", "Anelly_A", "Thibault_B", "Jonathan_T"]
+    people: ["Romain_B", "Ewen_D", "Enzo_B", "Anelly_A", "Thibault_B", "Jonathan_T", "Grégoire_P"]
   },
   {
     title: "Stage CEREMA",
@@ -702,6 +702,16 @@ const rawTimelineEvents = [
     ],
     link: ["INSA Hauts-de-France"],
   },
+    {
+    title: "Soirée de Noël",
+    category: "event",
+    subcategory: "Soirées",
+    startDate: "2023-12-20",
+    color: "#DD2517",
+    latitude: 50.35039291789014,
+    longitude: 3.5076536160251064, 
+    link: ["INSA Hauts-de-France"],
+  },
   {
     title: "SK'INSA",
     category: "travel",
@@ -810,7 +820,7 @@ const rawTimelineEvents = [
     people: ["Auriane_L", "Romain_B"]
   },
   {
-    title: "Soirée Yacht Monaco",
+    title: "Soirée 15 ans Monaco",
     category: "event",
     subcategory: "Soirées",
     startDate: "2025-03-29",
@@ -820,6 +830,18 @@ const rawTimelineEvents = [
     country: "Monaco",
     latitude: 43.736574872512115,
     longitude: 7.422248392449757,
+    link: ["Ingénieur Conception Mécanique"],
+  },
+    {
+    title: "Soirée d'été DELEO",
+    category: "event",
+    subcategory: "Soirées",
+    startDate: "2025-08-01",
+    color: "#01B0DC",
+    city: "Fréjus",
+    country: "France",
+    latitude: 43.416630518540444, 
+    longitude: 6.743267343185883,
     link: ["Ingénieur Conception Mécanique"],
   },
   {
@@ -845,6 +867,18 @@ const rawTimelineEvents = [
     longitude: 5.396072380478287,
     link: ["Ingénieur Conception Mécanique"],
     people: ["Alexis_H", "Emile_C", "Grégoire_L"]
+  },
+  {
+    title: "Soirée de Noël DELEO",
+    category: "event",
+    subcategory: "Soirées",
+    startDate: "2025-12-19",
+    color: "#01B0DC",
+    city: "St Raphaël",
+    country: "France",
+    latitude: 43.42414190688475, 
+    longitude: 6.764181412595853,
+    link: ["Ingénieur Conception Mécanique"],
   },
   {
     title: "Ski Isola 2000",
@@ -1531,7 +1565,8 @@ const rawTimelineEvents = [
   {
     title: "Billund (LEGO House)",
     category: "travel",
-    startDate: "2022-04-01",
+    startDate: "2022-04-22",
+    endDate: "2022-04-24",
     color: "#FFD401",
     city: "Billund",
     country: "Danemark",
