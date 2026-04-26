@@ -386,9 +386,6 @@ const rawTimelineEvents = [
     country: "France",
     latitude: 43.46444350562011,
     longitude: 6.730946052315697,
-    galleryFolder: "deleo",
-    galleryCount: 2,
-    galleryAlt: "Machine Deleo"
   },
   {
     title: "Remise des Diplômes",
@@ -665,10 +662,6 @@ const rawTimelineEvents = [
     country: "Belgique",
     latitude: 50.438249714596864,
     longitude: 5.970471274786538,
-    galleryFolder: "spa-francorchamps",
-    galleryCount: 1,
-    galleryExtension: "png",
-    galleryAlt: "Circuit Spa-Francorchamps"
   },
   {
     title: "Parc Astérix",
