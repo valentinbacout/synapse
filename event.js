@@ -764,10 +764,6 @@ const rawTimelineEvents = [
     country: "Belgique",
     latitude: 50.438249714596864,
     longitude: 5.970471274786538,
-    galleryFolder: "spa-francorchamps",
-    galleryCount: 1,
-    galleryExtension: "png",
-    galleryAlt: "Circuit Spa-Francorchamps"
   },
   {
     title: "Festival Lys Festival",
