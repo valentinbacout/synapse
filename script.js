@@ -886,7 +886,22 @@ function normalizeYoutubeEmbed(url) {
   return "";
 }
 
-function normalizeGalleryItems(gallery) {
+function normalizeGalleryItems(gallery, event = {}) {
+  if (event.galleryFolder && Number.isFinite(Number(event.galleryCount))) {
+    const extension = event.galleryExtension || "webp";
+    const alt = event.galleryAlt || event.title || event.galleryFolder;
+    const start = Number.isFinite(Number(event.galleryStart)) ? Number(event.galleryStart) : 1;
+
+    return Array.from({ length: Number(event.galleryCount) }, (_, index) => {
+      const number = start + index;
+      return {
+        src: `images/${event.galleryFolder}/${number}.${extension}`,
+        alt: `${alt} ${number}`,
+        caption: ""
+      };
+    });
+  }
+
   if (!Array.isArray(gallery)) return [];
   return gallery
     .map((item) => typeof item === "string" ? { src: item, alt: "", caption: "" } : item)
@@ -1028,7 +1043,7 @@ function createStepTreeMarkup(steps, fallbackDate, depth = 0) {
 function renderDrawerContent(event) {
   const location = getEventLocation(event);
   const embedUrl = normalizeYoutubeEmbed(event.youtubeUrl || event.youtube || event.videoUrl || "");
-  const galleryItems = normalizeGalleryItems(event.gallery || event.photos || event.images);
+  const galleryItems = normalizeGalleryItems(event.gallery || event.photos || event.images, event);
   const stepsMarkup = createStepTreeMarkup(getEventSteps(event), event.startDate ?? event.startMs);
 
   drawerContentEl.innerHTML = `

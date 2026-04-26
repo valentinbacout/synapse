@@ -20,6 +20,20 @@ const timelinePeople = {
   Emile_C: { role: "Collègue" },
 };
 
+function generateGallery(folder, count, options = {}) {
+  const extension = options.extension || "webp";
+  const alt = options.alt || folder;
+  const start = Number.isFinite(Number(options.start)) ? Number(options.start) : 1;
+
+  return Array.from({ length: count }, (_, index) => {
+    const number = start + index;
+    return {
+      src: `images/${folder}/${number}.${extension}`,
+      alt: `${alt} ${number}`
+    };
+  });
+}
+
 const rawTimelineEvents = [
   // LIVING PLACE (background only)
   {
@@ -68,12 +82,9 @@ const rawTimelineEvents = [
     country: "France",
     latitude: 50.372632899131226,
     longitude: 3.516082656934646,
-    gallery: [
-      {
-        src: "images/Epave.jpeg",
-        alt: "Epave",
-      },
-    ],
+    galleryFolder: "epave",
+    galleryCount: 1,
+    galleryAlt: "Colocation L'Épave",
     link: ["INSA Hauts-de-France"],
     people: ["Romain_B", "Enzo_B", "Ewen_D"]
   },
@@ -350,12 +361,9 @@ const rawTimelineEvents = [
         longitude: 101.7380052928374,
       },
     ],
-    gallery: [
-      {
-        src: "images/Y&L.jpg",
-        alt: "Y&L",
-      },
-    ],
+    galleryFolder: "joubert-group/yl",
+    galleryCount: 1,
+    galleryAlt: "Visite Y&L",
     link: ["Stage Joubert Group"],
   },
 
@@ -378,16 +386,9 @@ const rawTimelineEvents = [
     country: "France",
     latitude: 43.46444350562011,
     longitude: 6.730946052315697,
-    gallery: [
-      {
-        src: "images/deleo-origin2x-neon-machine-iwk4na__.webp",
-        alt: "Origin",
-      },
-      {
-        src: "images/deleo-sublim2x-neon-machine-IVhUH8__.webp",
-        alt: "Sublim",
-      }
-    ]
+    galleryFolder: "deleo",
+    galleryCount: 2,
+    galleryAlt: "Machine Deleo"
   },
   {
     title: "Remise des Diplômes",
@@ -664,12 +665,10 @@ const rawTimelineEvents = [
     country: "Belgique",
     latitude: 50.438249714596864,
     longitude: 5.970471274786538,
-    gallery: [
-      {
-        src: "images/spacircuit24.png",
-        alt: "SPA Francorchamps",
-      },
-    ]
+    galleryFolder: "spa-francorchamps",
+    galleryCount: 1,
+    galleryExtension: "png",
+    galleryAlt: "Circuit Spa-Francorchamps"
   },
   {
     title: "Parc Astérix",
@@ -694,12 +693,9 @@ const rawTimelineEvents = [
     details: "Organisé par INS'Avengers",
     latitude: 48.40620042399061,
     longitude: 5.2713294645023705,
-    gallery: [
-      {
-        src: "images/wei5A.jpeg",
-        alt: "WEI",
-      },
-    ],
+    galleryFolder: "wei-5a",
+    galleryCount: 1,
+    galleryAlt: "WEI 5A",
     link: ["INSA Hauts-de-France"],
   },
     {
@@ -775,12 +771,10 @@ const rawTimelineEvents = [
     country: "Belgique",
     latitude: 50.438249714596864,
     longitude: 5.970471274786538,
-    gallery: [
-      {
-        src: "images/spacircuit24.png",
-        alt: "SPA Francorchamps",
-      },
-    ]
+    galleryFolder: "spa-francorchamps",
+    galleryCount: 1,
+    galleryExtension: "png",
+    galleryAlt: "Circuit Spa-Francorchamps"
   },
   {
     title: "Festival Lys Festival",
@@ -922,13 +916,16 @@ const rawTimelineEvents = [
     subcategory: "Concerts",
     startDate: "2026-04-25",
     color: "#6E787A",
-        lineup: [
+    lineup: [
       { name: "Damso", rating: 9.75 },
       "Sarah Sey"],
     city: "Nice",
     country: "France",
     latitude: 43.67858911814832,
     longitude: 7.198901439819272,
+    galleryFolder: "damso",
+    galleryCount: 4,
+    galleryAlt: "Concert Damso - BEYAH Tour",
     people: ["Romain_B"]
   },
   {
@@ -1410,8 +1407,8 @@ const rawTimelineEvents = [
     color: "#ffffff",
     city: "Les Sybelles",
     country: "France",
-    latitude: 45.237970159216964,
-    longitude: 1.337997294703146
+    latitude: 45.25428528860229,
+    longitude: 6.257926375814807, 
   },
   {
     title: "Ayen",
@@ -1432,8 +1429,8 @@ const rawTimelineEvents = [
     color: "#ffffff",
     city: "Les Sybelles",
     country: "France",
-    latitude: 45.237970159216964,
-    longitude: 1.337997294703146
+    latitude: 45.25428528860229,
+    longitude: 6.257926375814807, 
   },
   {
     title: "Ayen",
@@ -1454,8 +1451,8 @@ const rawTimelineEvents = [
     color: "#ffffff",
     city: "Les Sybelles",
     country: "France",
-    latitude: 45.237970159216964,
-    longitude: 1.337997294703146
+    latitude: 45.25428528860229,
+    longitude: 6.257926375814807, 
   },
   {
     title: "Ayen",
@@ -1477,8 +1474,8 @@ const rawTimelineEvents = [
     color: "#ffffff",
     city: "Les Sybelles",
     country: "France",
-    latitude: 45.237970159216964,
-    longitude: 1.337997294703146
+    latitude: 45.25428528860229,
+    longitude: 6.257926375814807, 
   },
   {
     title: "Pairi Daiza",
@@ -1894,12 +1891,9 @@ const rawTimelineEvents = [
     category: "association",
     startDate: "2026-03-28",
     color: "#ffbdcb",
-    gallery: [
-      {
-        src: "images/AGO_INSA_Alumni_HdF_2026.jpeg",
-        alt: "AGO INSA Alumni HDF",
-      }
-    ],
+    galleryFolder: "insa-alumni/ago-2026",
+    galleryCount: 1,
+    galleryAlt: "AGO INSA Alumni HDF",
     link: ["Secrétaire INSA Alumni HDF"],
   },
   {
