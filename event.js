@@ -900,8 +900,9 @@ const rawTimelineEvents = [
     people: ["Romain_B", "Grégoire_P", "Anelly_A"]
   },
   {
-    title: "Concert Damso",
+    title: "Damso - BEYAH Tour",
     category: "event",
+    details: "Au Palais Nikaïa, Sarah Sey en 1ère partie",
     subcategory: "Concerts",
     startDate: "2026-04-25",
     color: "#6E787A",
