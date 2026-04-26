@@ -644,7 +644,7 @@ const rawTimelineEvents = [
     startDate: "2023-07-23",
     color: "#FF6A6E",
     lineup: [
-      { name: "LorEnzo_B", rating: 8.75 },
+      { name: "Lorenzo", rating: 8.75 },
       { name: "Lomepal", rating: 7.5 },
       "Sofiane Pamart", "Pomme"],
     city: "Aulnoye-Aymeries",
@@ -922,7 +922,9 @@ const rawTimelineEvents = [
     subcategory: "Concerts",
     startDate: "2026-04-25",
     color: "#6E787A",
-    lineup: ["Damso"],
+        lineup: [
+      { name: "Damso", rating: 9.75 },
+      "Sarah Sey"],
     city: "Nice",
     country: "France",
     latitude: 43.67858911814832,
