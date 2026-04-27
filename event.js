@@ -393,6 +393,8 @@ const rawTimelineEvents = [
     startDate: "2025-03-22",
     color: "#DD2517",
     link: ["INSA Hauts-de-France"],
+    galleryFolder: "rdd-2025",
+    galleryCount: 7,
   },
   {
     title: "Première Cryolipolyse",
@@ -604,6 +606,8 @@ const rawTimelineEvents = [
     longitude: 2.1592213406099368,
     youtubeUrl: "https://youtu.be/-bzoR3Ta0uU?si=9kBjnCR8j9rvlv-X",
     link: ["INSA Hauts-de-France"],
+    galleryFolder: "toss",
+    galleryCount: 4,
   },
   {
     title: "Great Day 2",
@@ -731,6 +735,8 @@ const rawTimelineEvents = [
     latitude: 50.34833257016073,
     longitude: 3.5316007640728335,
     link: ["INSA Hauts-de-France"],
+    galleryFolder: "match-vafc",
+    galleryCount: 5,
   },
   {
     title: "Soirée des Pleurs",
@@ -814,6 +820,8 @@ const rawTimelineEvents = [
     latitude: 43.736574872512115,
     longitude: 7.422248392449757,
     link: ["Ingénieur Conception Mécanique"],
+        galleryFolder: "yatch-monaco-2025",
+    galleryCount: 7,
   },
     {
     title: "Soirée d'été DELEO",

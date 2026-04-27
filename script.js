@@ -1040,6 +1040,111 @@ function createStepTreeMarkup(steps, fallbackDate, depth = 0) {
   `;
 }
 
+let activeGalleryItems = [];
+let activeGalleryIndex = 0;
+let galleryLightboxEl = null;
+let galleryLightboxImageEl = null;
+let galleryLightboxCaptionEl = null;
+let galleryLightboxCounterEl = null;
+
+function getGalleryLightbox() {
+  if (galleryLightboxEl) return galleryLightboxEl;
+
+  galleryLightboxEl = document.createElement("div");
+  galleryLightboxEl.className = "gallery-lightbox";
+  galleryLightboxEl.setAttribute("role", "dialog");
+  galleryLightboxEl.setAttribute("aria-modal", "true");
+  galleryLightboxEl.setAttribute("aria-label", "Visionneuse photos");
+  galleryLightboxEl.hidden = true;
+  galleryLightboxEl.innerHTML = `
+    <div class="gallery-lightbox__backdrop" data-gallery-close></div>
+    <div class="gallery-lightbox__panel">
+      <button type="button" class="gallery-lightbox__close" data-gallery-close aria-label="Fermer la visionneuse">✕</button>
+      <button type="button" class="gallery-lightbox__nav gallery-lightbox__nav--prev" data-gallery-prev aria-label="Photo précédente">‹</button>
+      <figure class="gallery-lightbox__figure">
+        <img class="gallery-lightbox__image" alt="" />
+        <figcaption class="gallery-lightbox__caption"></figcaption>
+      </figure>
+      <button type="button" class="gallery-lightbox__nav gallery-lightbox__nav--next" data-gallery-next aria-label="Photo suivante">›</button>
+      <div class="gallery-lightbox__counter" aria-live="polite"></div>
+    </div>
+  `;
+
+  galleryLightboxImageEl = galleryLightboxEl.querySelector(".gallery-lightbox__image");
+  galleryLightboxCaptionEl = galleryLightboxEl.querySelector(".gallery-lightbox__caption");
+  galleryLightboxCounterEl = galleryLightboxEl.querySelector(".gallery-lightbox__counter");
+
+  galleryLightboxEl.addEventListener("click", (event) => {
+    if (event.target.closest("[data-gallery-close]")) closeGalleryLightbox();
+    if (event.target.closest("[data-gallery-prev]")) showGalleryLightboxImage(activeGalleryIndex - 1);
+    if (event.target.closest("[data-gallery-next]")) showGalleryLightboxImage(activeGalleryIndex + 1);
+  });
+
+  document.body.appendChild(galleryLightboxEl);
+  return galleryLightboxEl;
+}
+
+function showGalleryLightboxImage(index) {
+  if (!activeGalleryItems.length) return;
+
+  activeGalleryIndex = (index + activeGalleryItems.length) % activeGalleryItems.length;
+  const item = activeGalleryItems[activeGalleryIndex];
+
+  if (galleryLightboxImageEl) {
+    galleryLightboxImageEl.src = item.src;
+    galleryLightboxImageEl.alt = item.alt || "Photo liée à l'événement";
+  }
+
+  if (galleryLightboxCaptionEl) {
+    const captionParts = [item.caption, item.alt].filter(Boolean);
+    galleryLightboxCaptionEl.textContent = captionParts[0] || "";
+    galleryLightboxCaptionEl.hidden = !galleryLightboxCaptionEl.textContent;
+  }
+
+  if (galleryLightboxCounterEl) {
+    galleryLightboxCounterEl.textContent = `${activeGalleryIndex + 1} / ${activeGalleryItems.length}`;
+  }
+}
+
+function openGalleryLightbox(items, startIndex = 0) {
+  activeGalleryItems = Array.isArray(items) ? items : [];
+  if (!activeGalleryItems.length) return;
+
+  const lightbox = getGalleryLightbox();
+  lightbox.hidden = false;
+  lightbox.classList.add("is-open");
+  document.body.classList.add("gallery-lightbox-open");
+  showGalleryLightboxImage(startIndex);
+
+  const closeButton = lightbox.querySelector(".gallery-lightbox__close");
+  closeButton?.focus({ preventScroll: true });
+}
+
+function closeGalleryLightbox() {
+  if (!galleryLightboxEl) return;
+
+  galleryLightboxEl.classList.remove("is-open");
+  galleryLightboxEl.hidden = true;
+  document.body.classList.remove("gallery-lightbox-open");
+  if (galleryLightboxImageEl) galleryLightboxImageEl.removeAttribute("src");
+}
+
+function handleGalleryLightboxKeydown(event) {
+  if (!galleryLightboxEl || galleryLightboxEl.hidden) return;
+
+  if (event.key === "Escape") {
+    event.preventDefault();
+    closeGalleryLightbox();
+  } else if (event.key === "ArrowLeft") {
+    event.preventDefault();
+    showGalleryLightboxImage(activeGalleryIndex - 1);
+  } else if (event.key === "ArrowRight") {
+    event.preventDefault();
+    showGalleryLightboxImage(activeGalleryIndex + 1);
+  }
+}
+
+document.addEventListener("keydown", handleGalleryLightboxKeydown);
 function renderDrawerContent(event) {
   const location = getEventLocation(event);
   const embedUrl = normalizeYoutubeEmbed(event.youtubeUrl || event.youtube || event.videoUrl || "");
@@ -1069,9 +1174,11 @@ ${event.details ? `
       <div class="event-drawer__section">
         <h3>Photos</h3>
         <div class="event-gallery">
-          ${galleryItems.map((item) => `
+          ${galleryItems.map((item, index) => `
             <figure class="event-gallery__item">
-              <img src="${escapeHtml(item.src)}" alt="${escapeHtml(item.alt)}" loading="lazy" />
+              <button type="button" class="event-gallery__button" data-gallery-index="${index}" aria-label="Agrandir la photo ${index + 1} sur ${galleryItems.length}">
+                <img src="${escapeHtml(item.src)}" alt="${escapeHtml(item.alt)}" loading="lazy" />
+              </button>
               ${item.caption ? `<figcaption>${escapeHtml(item.caption)}</figcaption>` : ""}
             </figure>
           `).join("")}
@@ -1083,8 +1190,15 @@ ${event.details ? `
         ${stepsMarkup}
       </div>` : ""}
   `;
-}
 
+  const galleryButtons = drawerContentEl.querySelectorAll("[data-gallery-index]");
+  galleryButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const index = Number(button.dataset.galleryIndex || 0);
+      openGalleryLightbox(galleryItems, index);
+    });
+  });
+}
 function openDrawer(event, options = {}) {
   selectEvent(event, { ...options, openDrawer: true });
 }
