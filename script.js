@@ -1413,6 +1413,8 @@ const statsEls = {
   artistsSeenMeta: document.getElementById("stat-artists-seen-meta"),
   themeParks: document.getElementById("stat-theme-parks"),
   themeParksMeta: document.getElementById("stat-theme-parks-meta"),
+  circuits: document.getElementById("stat-circuits"),
+  circuitsMeta: document.getElementById("stat-circuits-meta"),
   years: document.getElementById("stat-years"),
   breakdown: document.getElementById("stats-breakdown")
 };
@@ -1427,7 +1429,8 @@ const statCards = {
   bestYear: document.querySelector('[data-stat-key="bestYear"]') || null,
   topCountry: document.querySelector('[data-stat-key="topCountry"]') || null,
   artistsSeen: document.querySelector('[data-stat-key="artistsSeen"]') || null,
-  themeParks: document.querySelector('[data-stat-key="themeParks"]') || null
+  themeParks: document.querySelector('[data-stat-key="themeParks"]') || null,
+  circuits: document.querySelector('[data-stat-key="circuits"]') || null
 };
 
 let statsModalEl = null;
@@ -1507,6 +1510,30 @@ function normalizePersonEntry(entry) {
 
   const defaultRole = String(peopleDirectory[fallbackName]?.role || "").trim();
   return { name: fallbackName, role: defaultRole || null, raw: entry };
+}
+
+function normalizeCircuitEntry(entry) {
+  if (typeof entry === "string") {
+    const name = entry.trim();
+    return name ? { name, raw: entry } : null;
+  }
+
+  if (entry && typeof entry === "object") {
+    const name = String(entry.name || entry.circuit || entry.title || "").trim();
+    if (!name) return null;
+    return { name, raw: entry };
+  }
+
+  const fallbackName = String(entry || "").trim();
+  return fallbackName ? { name: fallbackName, raw: entry } : null;
+}
+
+function getEventCircuits(event) {
+  const rawCircuits = event?.circuits ?? event?.circuit ?? [];
+  const entries = Array.isArray(rawCircuits) ? rawCircuits : [rawCircuits];
+  return entries
+    .map((entry) => normalizeCircuitEntry(entry))
+    .filter(Boolean);
 }
 
 function normalizePeople(people) {
@@ -2941,6 +2968,41 @@ function renderStats() {
   const topThemeParkEntry = themeParkList[0] || null;
   const themeParksPodiumMarkup = createThemeParksPodiumMarkup(themeParkList);
   const themeParksRankingMarkup = createThemeParksRankingMarkup(themeParkList);
+  const circuitEvents = normalized
+    .filter((event) => getEventCircuits(event).length)
+    .sort((a, b) => b.startMs - a.startMs || String(a.title || "").localeCompare(String(b.title || ""), "fr-FR"));
+
+  const circuitMap = new Map();
+  circuitEvents.forEach((event) => {
+    getEventCircuits(event).forEach((circuit) => {
+      const key = circuit.name.toLocaleLowerCase("fr-FR");
+      if (!circuitMap.has(key)) {
+        circuitMap.set(key, {
+          name: circuit.name,
+          city: event.city || "",
+          country: event.country || "",
+          lastVisitMs: event.startMs,
+          firstVisitMs: event.startMs,
+          visitCount: 1,
+          events: [event]
+        });
+        return;
+      }
+
+      const entry = circuitMap.get(key);
+      entry.visitCount += 1;
+      entry.events.push(event);
+      entry.lastVisitMs = Math.max(entry.lastVisitMs, event.startMs);
+      entry.firstVisitMs = Math.min(entry.firstVisitMs, event.startMs);
+    });
+  });
+
+  const circuitList = Array.from(circuitMap.values())
+    .sort((a, b) => b.lastVisitMs - a.lastVisitMs || a.name.localeCompare(b.name, "fr-FR"))
+    .map((entry, index) => ({ ...entry, rank: index + 1 }));
+  const latestCircuitEntry = circuitList[0] || null;
+
+
 
   const countriesList = Array.from(uniqueCountriesMap.values());
   const countriesCoveragePct = uniqueCountriesMap.size ? (uniqueCountriesMap.size / TOTAL_COUNTRIES) * 100 : 0;
@@ -3014,6 +3076,12 @@ function renderStats() {
     statsEls.themeParksMeta.textContent = topThemeParkEntry
       ? `${topThemeParkEntry.title} · ${formatThemeParkPlace(topThemeParkEntry)} · ${formatParkRating(topThemeParkEntry.bestRating)}`
       : "Basé sur le tag theme park et la note";
+  }
+  if (statsEls.circuits) statsEls.circuits.textContent = String(circuitList.length);
+  if (statsEls.circuitsMeta) {
+    statsEls.circuitsMeta.textContent = latestCircuitEntry
+      ? `${latestCircuitEntry.name} · dernière visite ${formatFullDate(latestCircuitEntry.lastVisitMs)}`
+      : "Basé sur la caractéristique circuit";
   }
   if (statsEls.years) statsEls.years.textContent = String(years.size);
   if (statsEls.breakdown) statsEls.breakdown.innerHTML = breakdownItems;
@@ -3106,6 +3174,12 @@ function renderStats() {
     themeParkList.slice(0, 3).map((entry) => ({
       name: entry.title,
       meta: `${formatThemeParkPlace(entry)} · ${formatParkRating(entry.bestRating)}`
+    }))
+  ));
+  setVisualMarkup("stat-circuits-visual", createMiniPodiumMarkup(
+    circuitList.slice(0, 3).map((entry) => ({
+      name: entry.name,
+      meta: `${entry.visitCount} visite${entry.visitCount > 1 ? "s" : ""}`
     }))
   ));
 
@@ -3270,6 +3344,28 @@ function renderStats() {
     html: `${themeParksPodiumMarkup}${themeParksRankingMarkup}`
   });
 
+  setStatDetail("circuits", {
+    title: "Circuits F1 visités",
+    subtitle: circuitList.length
+      ? `${circuitList.length} circuit${circuitList.length > 1 ? "s" : ""} unique${circuitList.length > 1 ? "s" : ""} · ${circuitEvents.length} visite${circuitEvents.length > 1 ? "s" : ""}`
+      : "Aucun circuit détecté",
+    html: circuitList.length
+      ? createGroupedStatDetailList(
+        circuitList.map((entry) => ({
+          title: `#${entry.rank} ${entry.name}`,
+          meta: `${entry.visitCount} visite${entry.visitCount > 1 ? "s" : ""} · dernière visite ${formatFullDate(entry.lastVisitMs)}`,
+          items: entry.events
+            .slice()
+            .sort((a, b) => b.startMs - a.startMs)
+            .map((event) => ({
+              title: event.title || "Événement",
+              meta: `${formatEventDateRange(event)}${formatLocationLabel(event) ? ` · ${formatLocationLabel(event)}` : ""}`
+            }))
+        }))
+      )
+      : '<p class="stats-detail-empty">Aucun circuit détecté.</p>'
+  });
+
   bindStatCard(statCards.countries, "countries", "Afficher la liste des pays visités");
   bindStatCard(statCards.livedPlaces, "livedPlaces", "Afficher le détail des endroits vécus");
   bindStatCard(statCards.cities, "cities", "Afficher la liste des villes référencées");
@@ -3280,6 +3376,7 @@ function renderStats() {
   bindStatCard(statCards.topCountry, "topCountry", "Afficher le classement complet des pays les plus visités");
   bindStatCard(statCards.artistsSeen, "artistsSeen", "Afficher la liste des artistes vus");
   bindStatCard(statCards.themeParks, "themeParks", "Afficher la liste des parcs d'attractions");
+  bindStatCard(statCards.circuits, "circuits", "Afficher la liste des circuits F1 visités");
 }
 
 function getStepDateMs(step, fallbackDate) {
