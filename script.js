@@ -1415,6 +1415,8 @@ const statsEls = {
   themeParksMeta: document.getElementById("stat-theme-parks-meta"),
   circuits: document.getElementById("stat-circuits"),
   circuitsMeta: document.getElementById("stat-circuits-meta"),
+  sportEvents: document.getElementById("stat-sport-events"),
+  sportEventsMeta: document.getElementById("stat-sport-events-meta"),
   years: document.getElementById("stat-years"),
   breakdown: document.getElementById("stats-breakdown")
 };
@@ -1430,7 +1432,8 @@ const statCards = {
   topCountry: document.querySelector('[data-stat-key="topCountry"]') || null,
   artistsSeen: document.querySelector('[data-stat-key="artistsSeen"]') || null,
   themeParks: document.querySelector('[data-stat-key="themeParks"]') || null,
-  circuits: document.querySelector('[data-stat-key="circuits"]') || null
+  circuits: document.querySelector('[data-stat-key="circuits"]') || null,
+  sportEvents: document.querySelector('[data-stat-key="sportEvents"]') || null
 };
 
 let statsModalEl = null;
@@ -1533,6 +1536,15 @@ function getEventCircuits(event) {
   const entries = Array.isArray(rawCircuits) ? rawCircuits : [rawCircuits];
   return entries
     .map((entry) => normalizeCircuitEntry(entry))
+    .filter(Boolean);
+}
+
+function getEventSports(event) {
+  const rawSports = event?.sports ?? event?.sport ?? [];
+  const entries = Array.isArray(rawSports) ? rawSports : [rawSports];
+
+  return entries
+    .map((entry) => String(entry || "").trim())
     .filter(Boolean);
 }
 
@@ -3002,7 +3014,37 @@ function renderStats() {
     .map((entry, index) => ({ ...entry, rank: index + 1 }));
   const latestCircuitEntry = circuitList[0] || null;
 
+  const sportEvents = normalized
+    .filter((event) => getEventSports(event).length)
+    .sort((a, b) => b.startMs - a.startMs || String(a.title || "").localeCompare(String(b.title || ""), "fr-FR"));
 
+  const sportMap = new Map();
+  sportEvents.forEach((event) => {
+    getEventSports(event).forEach((sportName) => {
+      const key = sportName.toLocaleLowerCase("fr-FR");
+      if (!sportMap.has(key)) {
+        sportMap.set(key, {
+          name: sportName,
+          lastVisitMs: event.startMs,
+          firstVisitMs: event.startMs,
+          eventCount: 1,
+          events: [event]
+        });
+        return;
+      }
+
+      const entry = sportMap.get(key);
+      entry.eventCount += 1;
+      entry.events.push(event);
+      entry.lastVisitMs = Math.max(entry.lastVisitMs, event.startMs);
+      entry.firstVisitMs = Math.min(entry.firstVisitMs, event.startMs);
+    });
+  });
+
+  const sportList = Array.from(sportMap.values())
+    .sort((a, b) => b.eventCount - a.eventCount || b.lastVisitMs - a.lastVisitMs || a.name.localeCompare(b.name, "fr-FR"))
+    .map((entry, index) => ({ ...entry, rank: index + 1 }));
+  const topSportEntry = sportList[0] || null;
 
   const countriesList = Array.from(uniqueCountriesMap.values());
   const countriesCoveragePct = uniqueCountriesMap.size ? (uniqueCountriesMap.size / TOTAL_COUNTRIES) * 100 : 0;
@@ -3082,6 +3124,12 @@ function renderStats() {
     statsEls.circuitsMeta.textContent = latestCircuitEntry
       ? `${latestCircuitEntry.name} · dernière visite ${formatFullDate(latestCircuitEntry.lastVisitMs)}`
       : "Basé sur la caractéristique circuit";
+  }
+  if (statsEls.sportEvents) statsEls.sportEvents.textContent = String(sportEvents.length);
+  if (statsEls.sportEventsMeta) {
+    statsEls.sportEventsMeta.textContent = topSportEntry
+      ? `${topSportEntry.name} · ${topSportEntry.eventCount} événement${topSportEntry.eventCount > 1 ? "s" : ""}`
+      : "Basé sur la caractéristique sport";
   }
   if (statsEls.years) statsEls.years.textContent = String(years.size);
   if (statsEls.breakdown) statsEls.breakdown.innerHTML = breakdownItems;
@@ -3366,6 +3414,28 @@ function renderStats() {
       : '<p class="stats-detail-empty">Aucun circuit détecté.</p>'
   });
 
+  setStatDetail("sportEvents", {
+    title: "Événements sportifs assistés",
+    subtitle: sportEvents.length
+      ? `${sportEvents.length} événement${sportEvents.length > 1 ? "s" : ""} · ${sportList.length} sport${sportList.length > 1 ? "s" : ""}`
+      : "Aucun événement sportif détecté",
+    html: sportList.length
+      ? createGroupedStatDetailList(
+        sportList.map((entry) => ({
+          title: `#${entry.rank} ${entry.name}`,
+          meta: `${entry.eventCount} événement${entry.eventCount > 1 ? "s" : ""} · dernier événement ${formatFullDate(entry.lastVisitMs)}`,
+          items: entry.events
+            .slice()
+            .sort((a, b) => b.startMs - a.startMs)
+            .map((event) => ({
+              title: event.title || "Événement",
+              meta: `${formatEventDateRange(event)}${formatLocationLabel(event) ? ` · ${formatLocationLabel(event)}` : ""}`
+            }))
+        }))
+      )
+      : '<p class="stats-detail-empty">Aucun événement sportif détecté.</p>'
+  });
+
   bindStatCard(statCards.countries, "countries", "Afficher la liste des pays visités");
   bindStatCard(statCards.livedPlaces, "livedPlaces", "Afficher le détail des endroits vécus");
   bindStatCard(statCards.cities, "cities", "Afficher la liste des villes référencées");
@@ -3377,6 +3447,7 @@ function renderStats() {
   bindStatCard(statCards.artistsSeen, "artistsSeen", "Afficher la liste des artistes vus");
   bindStatCard(statCards.themeParks, "themeParks", "Afficher la liste des parcs d'attractions");
   bindStatCard(statCards.circuits, "circuits", "Afficher la liste des circuits F1 visités");
+  bindStatCard(statCards.sportEvents, "sportEvents", "Afficher la liste des événements sportifs assistés");
 }
 
 function getStepDateMs(step, fallbackDate) {
@@ -4053,7 +4124,8 @@ function getNodeTypeLabel(type) {
     country: "Pays",
     artist: "Artiste",
     person: "Personne",
-    tag: "Tag"
+    tag: "Tag",
+    sport: "Sport"
   })[type] || "Nœud";
 }
 
@@ -4269,6 +4341,35 @@ function buildNetworkGraphData(options = {}) {
       }
     });
 
+    const eventSports = getEventSports(event);
+
+    if (eventSports.length) {
+      const sportRootNodeId = "sport:root";
+
+      ensureNode(sportRootNodeId, {
+        type: "sport",
+        label: "Sport",
+        color: "#22c55e",
+        meta: "Catégorie générale",
+        category: event.category
+      });
+
+      eventSports.forEach((sportName) => {
+        const sportNodeId = `sport:${normalizeTagValue(sportName)}`;
+
+        ensureNode(sportNodeId, {
+          type: "sport",
+          label: sportName,
+          color: "#22c55e",
+          meta: "Sport",
+          category: event.category
+        });
+
+        ensureLink(sportRootNodeId, sportNodeId, "sport");
+        ensureLink(sportNodeId, eventNodeId, "sport");
+      });
+    }
+
     normalizeLineup(event.lineup).forEach((artistEntry) => {
       const artistNodeId = `artist:${normalizeTagValue(artistEntry.name)}`;
       ensureNode(artistNodeId, {
@@ -4328,7 +4429,8 @@ function buildNetworkGraphData(options = {}) {
     country: 11,
     artist: 8,
     person: 8,
-    tag: 7
+    tag: 7,
+    sport: 11
   };
 
   const nodes = Array.from(nodeMap.values()).map((node) => {
@@ -4519,6 +4621,7 @@ function renderKnowledgeGraph(visibleCategoriesSet = getActiveCategories(), hidd
     artist: 104,
     person: 98,
     tag: 76,
+    sport: 90,
     "event-link": 92
   };
 
@@ -4529,6 +4632,7 @@ function renderKnowledgeGraph(visibleCategoriesSet = getActiveCategories(), hidd
     artist: 0.88,
     person: 0.92,
     tag: 0.82,
+    sport: 0.98,
     "event-link": 0.98
   };
 
